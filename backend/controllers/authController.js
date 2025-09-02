@@ -14,5 +14,5 @@ export const googleCallback = (req, res) => {
   });
 
   // Redirect to the React app's callback route with the token
-  res.redirect(`http://localhost:3000/auth/callback?token=${token}`);
+  res.redirect(`http://localhost:5173/auth/callback?token=${token}`);
 };

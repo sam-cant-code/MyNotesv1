@@ -25,7 +25,7 @@ connectDB().then(() => {
 // Enable CORS
 // This allows your React app at localhost:3000 to make requests to this backend.
 app.use(cors({
-  origin: "http://localhost:3000", // The origin of your React app
+  origin: "http://localhost:5173", // The origin of your React app
   credentials: true,
 }));
 
