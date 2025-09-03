@@ -1,11 +1,22 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import AuthCallback from './pages/AuthCallBack.jsx';
 import ProtectedRoute from './components/ProtectedRoutes.jsx';
+import useThemeStore from './stores/themeStore.js'; // <-- Import the new store
 
 function App() {
+  const theme = useThemeStore((state) => state.theme); // <-- Use the new store
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
   return (
     <Router>
       <Routes>
