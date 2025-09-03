@@ -1,6 +1,11 @@
 import { Router } from "express";
 import { protect } from "../middleware/authMiddleware.js";
-import { getNotesForUser, createNote } from "../controllers/noteController.js";
+import {
+  getNotesForUser,
+  createNote,
+  updateNote,
+  deleteNote,
+} from "../controllers/noteController.js";
 
 const router = Router();
 
@@ -8,13 +13,9 @@ const router = Router();
 router.use(protect);
 
 // Route to get all notes for a user and create a new note
-router.route("/")
-    .get(getNotesForUser)
-    .post(createNote);
+router.route("/").get(getNotesForUser).post(createNote);
 
-// Future routes for updating or deleting can be added here, e.g.:
-// router.route("/:id")
-//     .put(updateNote)
-//     .delete(deleteNote);
+// Routes for updating or deleting a specific note by its ID
+router.route("/:id").put(updateNote).delete(deleteNote);
 
 export default router;

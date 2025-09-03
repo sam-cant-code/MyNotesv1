@@ -193,6 +193,35 @@ export const createNoteForUser = async ({ userId, title, content }) => {
   }
 };
 
+/**
+ * Updates an existing note.
+ * @param {number} noteId - The ID of the note to update.
+ * @param {number} userId - The ID of the user who owns the note.
+ * @param {object} noteDetails - The details to update.
+ * @param {string} noteDetails.title - The new title.
+ * @param {string} noteDetails.content - The new content.
+ * @returns {Promise<object|null>} The updated note object, or null if not found.
+ */
+export const updateNoteById = async (noteId, userId, { title, content }) => {
+  const query =
+    "UPDATE notes SET title = $1, content = $2 WHERE id = $3 AND user_id = $4 RETURNING *";
+  const { rows } = await pool.query(query, [title, content, noteId, userId]);
+  return rows[0] || null;
+};
+
+/**
+ * Deletes a note by its ID.
+ * @param {number} noteId - The ID of the note to delete.
+ * @param {number} userId - The ID of the user who owns the note.
+ * @returns {Promise<object|null>} The deleted note object, or null if not found.
+ */
+export const deleteNoteById = async (noteId, userId) => {
+  const query = "DELETE FROM notes WHERE id = $1 AND user_id = $2 RETURNING *";
+  const { rows } = await pool.query(query, [noteId, userId]);
+  return rows[0] || null;
+};
+
+
 // Additional debugging function to check database state
 export const debugDatabaseState = async () => {
   try {
