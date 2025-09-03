@@ -1,6 +1,6 @@
 import React from 'react';
 import { Sun, Moon } from 'lucide-react';
-import useThemeStore from '../stores/themeStore'; // <-- Import the new store
+import useThemeStore from '../../stores/themeStore.js'; // <-- Import the new store
 
 const ThemeSwitcher = () => {
   const theme = useThemeStore((state) => state.theme); // <-- Use the new store

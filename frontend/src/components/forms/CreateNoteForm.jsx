@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import useNoteStore from '../stores/noteStore';
+import useNoteStore from '../../stores/noteStore.js';
 
 const CreateNoteForm = ({ onNoteCreated }) => {
   const [title, setTitle] = useState('');
