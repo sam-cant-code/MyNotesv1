@@ -1,20 +1,14 @@
-// Enhanced debugging version of your noteModel.js
+
 import { pool } from "../config/postgres.js";
 
-/**
- * Ensures the 'notes' table exists in the database.
- * This function uses "CREATE TABLE IF NOT EXISTS" which is safe to run on every startup.
- */
 export const ensureNotesTableExists = async () => {
   console.log("🔄 Starting notes table creation process...");
   
   try {
-    // First, let's verify the database connection is working
     console.log("🔍 Testing database connection...");
     const testResult = await pool.query("SELECT NOW()");
     console.log("✅ Database connection test successful:", testResult.rows[0]);
 
-    // Check if users table exists first
     console.log("🔍 Checking if users table exists...");
     const usersCheck = await pool.query(`
       SELECT EXISTS (
@@ -26,21 +20,9 @@ export const ensureNotesTableExists = async () => {
     console.log("Users table exists:", usersCheck.rows[0].exists);
     
     if (!usersCheck.rows[0].exists) {
-      throw new Error("Users table does not exist! Cannot create notes table with foreign key constraint.");
+      throw new Error("Users table does not exist!");
     }
 
-    // Check if notes table already exists
-    console.log("🔍 Checking if notes table already exists...");
-    const notesCheck = await pool.query(`
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables 
-        WHERE table_schema = 'public' 
-        AND table_name = 'notes'
-      );
-    `);
-    console.log("Notes table already exists:", notesCheck.rows[0].exists);
-
-    // Create the notes table
     console.log("🔄 Creating notes table...");
     const createTableQuery = `
       CREATE TABLE IF NOT EXISTS notes (
@@ -48,6 +30,7 @@ export const ensureNotesTableExists = async () => {
         user_id INTEGER NOT NULL,
         title VARCHAR(255) NOT NULL,
         content TEXT,
+        pinned BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT fk_user
             FOREIGN KEY(user_id) 
@@ -56,196 +39,74 @@ export const ensureNotesTableExists = async () => {
       );
     `;
     
-    const result = await pool.query(createTableQuery);
-    console.log("✅ Notes table creation query executed successfully");
+    await pool.query(createTableQuery);
+    console.log("✅ Notes table created successfully");
 
-    // Verify the table was created
-    console.log("🔍 Verifying notes table was created...");
-    const finalCheck = await pool.query(`
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables 
-        WHERE table_schema = 'public' 
-        AND table_name = 'notes'
-      );
-    `);
-    console.log("Notes table exists after creation:", finalCheck.rows[0].exists);
+    console.log("🔄 Ensuring pinned column exists...");
+    const addPinnedColumn = `
+      DO $$ 
+      BEGIN 
+        BEGIN
+          ALTER TABLE notes ADD COLUMN pinned BOOLEAN DEFAULT FALSE;
+        EXCEPTION
+          WHEN duplicate_column THEN 
+            NULL;
+        END;
+      END $$;
+    `;
+    await pool.query(addPinnedColumn);
+    console.log("✅ Pinned column ensured");
 
-    // List all columns in the notes table
-    console.log("🔍 Checking notes table structure...");
-    const columnsCheck = await pool.query(`
-      SELECT column_name, data_type, is_nullable, column_default
-      FROM information_schema.columns 
-      WHERE table_name = 'notes' 
-      ORDER BY ordinal_position;
-    `);
-    console.log("Notes table columns:", columnsCheck.rows);
-
-    console.log("✅ 'notes' table is ready and verified.");
+    console.log("✅ Notes table is ready and verified");
     
   } catch (err) {
-    console.error("❌ Error ensuring 'notes' table exists:", err);
-    console.error("Full error details:", {
-      message: err.message,
-      code: err.code,
-      detail: err.detail,
-      hint: err.hint,
-      position: err.position,
-      internalPosition: err.internalPosition,
-      internalQuery: err.internalQuery,
-      where: err.where,
-      schema: err.schema,
-      table: err.table,
-      column: err.column,
-      dataType: err.dataType,
-      constraint: err.constraint
-    });
-    throw err; // Re-throw to stop server startup
+    console.error("❌ Error ensuring notes table exists:", err);
+    throw err;
   }
 };
 
-/**
- * Finds all notes for a given user ID.
- * @param {number} userId - The ID of the user.
- * @returns {Promise<Array>} An array of the user's notes.
- */
 export const findNotesByUserId = async (userId) => {
-  console.log(`🔍 Attempting to find notes for user ID: ${userId}`);
+  console.log(`🔍 Finding notes for user ID: ${userId}`);
   
   try {
-    // First verify the table exists before querying
-    const tableExists = await pool.query(`
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables 
-        WHERE table_schema = 'public' 
-        AND table_name = 'notes'
-      );
-    `);
-    
-    if (!tableExists.rows[0].exists) {
-      throw new Error("Notes table does not exist when trying to query it!");
-    }
-    
-    console.log("✅ Notes table confirmed to exist before query");
-    
-    const query = "SELECT * FROM notes WHERE user_id = $1 ORDER BY created_at DESC";
-    console.log("🔄 Executing query:", query, "with userId:", userId);
-    
+    const query = "SELECT * FROM notes WHERE user_id = $1 ORDER BY pinned DESC, created_at DESC";
     const { rows } = await pool.query(query, [userId]);
-    console.log(`✅ Query successful. Found ${rows.length} notes for user ${userId}`);
-    
+    console.log(`✅ Found ${rows.length} notes`);
     return rows;
   } catch (err) {
     console.error("❌ Error in findNotesByUserId:", err);
-    console.error("Full error details:", {
-      message: err.message,
-      code: err.code,
-      detail: err.detail,
-      hint: err.hint
-    });
     throw err;
   }
 };
 
-/**
- * Creates a new note in the database for a specific user.
- * @param {object} noteDetails - The details of the note to create.
- * @param {number} noteDetails.userId - The ID of the user creating the note.
- * @param {string} noteDetails.title - The title of the note.
- * @param {string} noteDetails.content - The content of the note.
- * @returns {Promise<object>} The newly created note object.
- */
 export const createNoteForUser = async ({ userId, title, content }) => {
-  console.log(`🔍 Attempting to create note for user ID: ${userId}`);
-  console.log("Note details:", { userId, title: title?.substring(0, 50), content: content?.substring(0, 100) });
+  console.log(`🔍 Creating note for user ID: ${userId}`);
   
   try {
-    // First verify the table exists before querying
-    const tableExists = await pool.query(`
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables 
-        WHERE table_schema = 'public' 
-        AND table_name = 'notes'
-      );
-    `);
-    
-    if (!tableExists.rows[0].exists) {
-      throw new Error("Notes table does not exist when trying to insert!");
-    }
-    
-    console.log("✅ Notes table confirmed to exist before insert");
-    
-    const query = "INSERT INTO notes (user_id, title, content) VALUES ($1, $2, $3) RETURNING *";
-    console.log("🔄 Executing insert query:", query);
-    
-    const { rows } = await pool.query(query, [userId, title, content]);
-    console.log("✅ Note created successfully:", rows[0]);
-    
+    const query = "INSERT INTO notes (user_id, title, content, pinned) VALUES ($1, $2, $3, $4) RETURNING *";
+    const { rows } = await pool.query(query, [userId, title, content, false]);
+    console.log("✅ Note created successfully");
     return rows[0];
   } catch (err) {
     console.error("❌ Error in createNoteForUser:", err);
-    console.error("Full error details:", {
-      message: err.message,
-      code: err.code,
-      detail: err.detail,
-      hint: err.hint
-    });
     throw err;
   }
 };
 
-/**
- * Updates an existing note.
- * @param {number} noteId - The ID of the note to update.
- * @param {number} userId - The ID of the user who owns the note.
- * @param {object} noteDetails - The details to update.
- * @param {string} noteDetails.title - The new title.
- * @param {string} noteDetails.content - The new content.
- * @returns {Promise<object|null>} The updated note object, or null if not found.
- */
 export const updateNoteById = async (noteId, userId, { title, content }) => {
-  const query =
-    "UPDATE notes SET title = $1, content = $2 WHERE id = $3 AND user_id = $4 RETURNING *";
+  const query = "UPDATE notes SET title = $1, content = $2 WHERE id = $3 AND user_id = $4 RETURNING *";
   const { rows } = await pool.query(query, [title, content, noteId, userId]);
   return rows[0] || null;
 };
 
-/**
- * Deletes a note by its ID.
- * @param {number} noteId - The ID of the note to delete.
- * @param {number} userId - The ID of the user who owns the note.
- * @returns {Promise<object|null>} The deleted note object, or null if not found.
- */
 export const deleteNoteById = async (noteId, userId) => {
   const query = "DELETE FROM notes WHERE id = $1 AND user_id = $2 RETURNING *";
   const { rows } = await pool.query(query, [noteId, userId]);
   return rows[0] || null;
 };
 
-
-// Additional debugging function to check database state
-export const debugDatabaseState = async () => {
-  try {
-    console.log("🔍 === DATABASE STATE DEBUG ===");
-    
-    // List all tables
-    const tables = await pool.query(`
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_schema = 'public'
-      ORDER BY table_name;
-    `);
-    console.log("All tables in database:", tables.rows.map(row => row.table_name));
-    
-    // Check current database name
-    const dbName = await pool.query("SELECT current_database()");
-    console.log("Current database:", dbName.rows[0].current_database);
-    
-    // Check current schema
-    const currentSchema = await pool.query("SELECT current_schema()");
-    console.log("Current schema:", currentSchema.rows[0].current_schema);
-    
-    console.log("=== END DATABASE STATE DEBUG ===");
-  } catch (err) {
-    console.error("❌ Error in debugDatabaseState:", err);
-  }
+export const togglePinNote = async (noteId, userId) => {
+  const query = "UPDATE notes SET pinned = NOT pinned WHERE id = $1 AND user_id = $2 RETURNING *";
+  const { rows } = await pool.query(query, [noteId, userId]);
+  return rows[0] || null;
 };

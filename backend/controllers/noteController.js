@@ -1,16 +1,16 @@
-// We now import the database functions from the noteModel
+// ============================================================
+// FILE 1: backend/controllers/noteController.js
+// COPY THIS ENTIRE FILE - REPLACE YOUR EXISTING FILE
+// ============================================================
+
 import {
   findNotesByUserId,
   createNoteForUser,
   updateNoteById,
   deleteNoteById,
+  togglePinNote,
 } from "../models/noteModel.js";
 
-/**
- * @desc    Get all notes for the logged-in user
- * @route   GET /api/notes
- * @access  Private
- */
 export const getNotesForUser = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -22,11 +22,6 @@ export const getNotesForUser = async (req, res) => {
   }
 };
 
-/**
- * @desc    Create a new note
- * @route   POST /api/notes
- * @access  Private
- */
 export const createNote = async (req, res) => {
   try {
     const { title, content } = req.body;
@@ -44,11 +39,6 @@ export const createNote = async (req, res) => {
   }
 };
 
-/**
- * @desc    Update a note
- * @route   PUT /api/notes/:id
- * @access  Private
- */
 export const updateNote = async (req, res) => {
   try {
     const { title, content } = req.body;
@@ -75,11 +65,6 @@ export const updateNote = async (req, res) => {
   }
 };
 
-/**
- * @desc    Delete a note
- * @route   DELETE /api/notes/:id
- * @access  Private
- */
 export const deleteNote = async (req, res) => {
   try {
     const noteId = req.params.id;
@@ -95,5 +80,23 @@ export const deleteNote = async (req, res) => {
   } catch (error) {
     console.error("Error deleting note:", error);
     res.status(500).json({ message: "Server error while deleting note" });
+  }
+};
+
+export const togglePin = async (req, res) => {
+  try {
+    const noteId = req.params.id;
+    const userId = req.user.id;
+
+    const updatedNote = await togglePinNote(noteId, userId);
+
+    if (!updatedNote) {
+      return res.status(404).json({ message: "Note not found" });
+    }
+
+    res.status(200).json(updatedNote);
+  } catch (error) {
+    console.error("Error toggling pin:", error);
+    res.status(500).json({ message: "Server error while toggling pin" });
   }
 };
