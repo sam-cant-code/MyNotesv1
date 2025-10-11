@@ -5,7 +5,10 @@ import useNoteStore from '../stores/noteStore';
 import NavigationBar from '../components/layout/NavigationBar';
 import WelcomeHeader from '../components/notes/WelcomeHeader';
 import CreateNoteForm from '../components/forms/CreateNoteForm';
+import EditNoteModal from '../components/forms/EditNoteModal';
 import NotesGrid from '../components/notes/NotesGrid';
+import FloatingActionButton from '../components/common/FloatingActionButton';
+import ViewControls from '../components/layout/ViewControls';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -16,8 +19,11 @@ const Dashboard = () => {
   // Note store state
   const { notes, fetchNotes, loading: notesLoading } = useNoteStore();
 
-  // Local state to manage form visibility
+  // Local state
   const [isCreateFormVisible, setCreateFormVisible] = useState(false);
+  const [editingNote, setEditingNote] = useState(null);
+  const [viewMode, setViewMode] = useState('grid'); // 'grid', 'masonry', 'list'
+  const [sortBy, setSortBy] = useState('newest'); // 'newest', 'oldest'
 
   // Fetch profile and notes on component mount
   useEffect(() => {
@@ -36,9 +42,19 @@ const Dashboard = () => {
     setCreateFormVisible(!isCreateFormVisible);
   };
 
-  // Handle note created (close form)
+  // Handle note created (close form and refresh)
   const handleNoteCreated = () => {
     setCreateFormVisible(false);
+  };
+
+  // Handle edit note
+  const handleEditNote = (note) => {
+    setEditingNote(note);
+  };
+
+  // Handle close edit modal
+  const handleCloseEditModal = () => {
+    setEditingNote(null);
   };
 
   // If token becomes invalid, logout user
@@ -54,13 +70,17 @@ const Dashboard = () => {
       <NavigationBar onLogout={handleLogout} />
 
       {/* Main Content */}
-      <main className="flex-grow w-full">
-        <div className="container px-6 py-8 mx-auto">
+      <main className="flex-grow w-full pb-24">
+        <div className="container px-6 py-8 mx-auto max-w-7xl">
           {/* Welcome Header */}
-          <WelcomeHeader 
-            userProfile={userProfile}
-            isCreateFormVisible={isCreateFormVisible}
-            onToggleCreateForm={handleToggleCreateForm}
+          <WelcomeHeader userProfile={userProfile} />
+
+          {/* View Controls */}
+          <ViewControls 
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
           />
 
           {/* Create Note Form (Conditionally Rendered) */}
@@ -69,9 +89,28 @@ const Dashboard = () => {
           )}
 
           {/* Notes Grid */}
-          <NotesGrid notes={notes} notesLoading={notesLoading} />
+          <NotesGrid 
+            notes={notes} 
+            notesLoading={notesLoading}
+            onEdit={handleEditNote}
+            viewMode={viewMode}
+            sortBy={sortBy}
+          />
         </div>
       </main>
+
+      {/* Floating Action Button */}
+      {!isCreateFormVisible && (
+        <FloatingActionButton onClick={handleToggleCreateForm} />
+      )}
+
+      {/* Edit Note Modal */}
+      {editingNote && (
+        <EditNoteModal 
+          note={editingNote} 
+          onClose={handleCloseEditModal} 
+        />
+      )}
     </div>
   );
 };

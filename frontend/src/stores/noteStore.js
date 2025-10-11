@@ -1,7 +1,5 @@
 import { create } from 'zustand';
 import axios from 'axios';
-
-// Get the auth token from the authStore
 import useAuthStore from './authStore';
 
 const useNoteStore = create((set, get) => ({
@@ -42,7 +40,6 @@ const useNoteStore = create((set, get) => ({
         { title, content },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      // Add the new note to the beginning of the notes array
       set((state) => ({
         notes: [response.data, ...state.notes],
         loading: false,
@@ -50,6 +47,78 @@ const useNoteStore = create((set, get) => ({
     } catch (err) {
       console.error('Failed to add note:', err);
       set({ error: 'Failed to add note.', loading: false });
+    }
+  },
+
+  // Action to update a note
+  updateNote: async (noteId, title, content) => {
+    set({ loading: true, error: null });
+    const token = useAuthStore.getState().token;
+    if (!token) {
+      return set({ loading: false, error: 'Authentication token not found.' });
+    }
+
+    try {
+      const response = await axios.put(
+        `http://localhost:4000/api/notes/${noteId}`,
+        { title, content },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      set((state) => ({
+        notes: state.notes.map((note) =>
+          note.id === noteId ? response.data : note
+        ),
+        loading: false,
+      }));
+    } catch (err) {
+      console.error('Failed to update note:', err);
+      set({ error: 'Failed to update note.', loading: false });
+    }
+  },
+
+  // Action to delete a note
+  deleteNote: async (noteId) => {
+    set({ loading: true, error: null });
+    const token = useAuthStore.getState().token;
+    if (!token) {
+      return set({ loading: false, error: 'Authentication token not found.' });
+    }
+
+    try {
+      await axios.delete(`http://localhost:4000/api/notes/${noteId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      set((state) => ({
+        notes: state.notes.filter((note) => note.id !== noteId),
+        loading: false,
+      }));
+    } catch (err) {
+      console.error('Failed to delete note:', err);
+      set({ error: 'Failed to delete note.', loading: false });
+    }
+  },
+
+  // Action to toggle pin status
+  togglePin: async (noteId) => {
+    const token = useAuthStore.getState().token;
+    if (!token) {
+      return set({ error: 'Authentication token not found.' });
+    }
+
+    try {
+      const response = await axios.patch(
+        `http://localhost:4000/api/notes/${noteId}/pin`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      set((state) => ({
+        notes: state.notes.map((note) =>
+          note.id === noteId ? response.data : note
+        ),
+      }));
+    } catch (err) {
+      console.error('Failed to toggle pin:', err);
+      set({ error: 'Failed to toggle pin.' });
     }
   },
 }));
