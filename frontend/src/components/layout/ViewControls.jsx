@@ -10,7 +10,7 @@ const ViewControls = ({ viewMode, setViewMode, sortBy, setSortBy }) => {
         <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
           <button
             onClick={() => setViewMode('grid')}
-            className={`p-2 rounded-md transition-colors ${
+            className={`p-2 rounded-md transition-colors focus:outline-none ${
               viewMode === 'grid'
                 ? 'bg-white dark:bg-slate-700 shadow-sm'
                 : 'hover:bg-slate-200 dark:hover:bg-slate-700'
@@ -21,7 +21,7 @@ const ViewControls = ({ viewMode, setViewMode, sortBy, setSortBy }) => {
           </button>
           <button
             onClick={() => setViewMode('masonry')}
-            className={`p-2 rounded-md transition-colors ${
+            className={`p-2 rounded-md transition-colors focus:outline-none ${
               viewMode === 'masonry'
                 ? 'bg-white dark:bg-slate-700 shadow-sm'
                 : 'hover:bg-slate-200 dark:hover:bg-slate-700'
@@ -32,7 +32,7 @@ const ViewControls = ({ viewMode, setViewMode, sortBy, setSortBy }) => {
           </button>
           <button
             onClick={() => setViewMode('list')}
-            className={`p-2 rounded-md transition-colors ${
+            className={`p-2 rounded-md transition-colors focus:outline-none ${
               viewMode === 'list'
                 ? 'bg-white dark:bg-slate-700 shadow-sm'
                 : 'hover:bg-slate-200 dark:hover:bg-slate-700'
@@ -50,7 +50,7 @@ const ViewControls = ({ viewMode, setViewMode, sortBy, setSortBy }) => {
         <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
           <button
             onClick={() => setSortBy('newest')}
-            className={`px-3 py-2 rounded-md transition-colors text-sm font-medium flex items-center gap-1 ${
+            className={`px-3 py-2 rounded-md transition-colors text-sm font-medium flex items-center gap-1 focus:outline-none ${
               sortBy === 'newest'
                 ? 'bg-white dark:bg-slate-700 shadow-sm'
                 : 'hover:bg-slate-200 dark:hover:bg-slate-700'
@@ -61,7 +61,7 @@ const ViewControls = ({ viewMode, setViewMode, sortBy, setSortBy }) => {
           </button>
           <button
             onClick={() => setSortBy('oldest')}
-            className={`px-3 py-2 rounded-md transition-colors text-sm font-medium flex items-center gap-1 ${
+            className={`px-3 py-2 rounded-md transition-colors text-sm font-medium flex items-center gap-1 focus:outline-none ${
               sortBy === 'oldest'
                 ? 'bg-white dark:bg-slate-700 shadow-sm'
                 : 'hover:bg-slate-200 dark:hover:bg-slate-700'

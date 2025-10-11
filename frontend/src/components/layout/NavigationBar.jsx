@@ -1,23 +1,106 @@
-import React from 'react';
-import ThemeSwitcher from '../common/ThemeSwitcher';
-import { StickyNote } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { StickyNote, LogOut } from 'lucide-react';
+import useAuthStore from '../../stores/authStore';
 
 const NavigationBar = ({ onLogout }) => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const userProfile = useAuthStore((state) => state.userProfile);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  const handleLogoutClick = () => {
+    setIsDropdownOpen(false);
+    onLogout();
+  };
+
+  // Get user info
+  const userName = userProfile?.user?.displayName || 'User';
+  const userEmail = userProfile?.user?.email || '';
+  const userPhoto = userProfile?.user?.photoURL;
+
   return (
-    <nav className="w-full border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
-      <div className="container flex items-center justify-between px-6 py-4 mx-auto">
-        <div className="flex items-center gap-2">
-          <StickyNote className="w-6 h-6 text-amber-500" />
-          <div className="text-xl font-extrabold">MyNotes</div>
+    <nav className="w-full border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+      <div className="container flex items-center justify-between px-6 py-3.5 mx-auto">
+        <div className="flex items-center gap-2.5">
+          <div className="p-1.5 rounded-lg bg-orange-50 dark:bg-orange-950/30">
+            <StickyNote className="w-5 h-5 text-orange-500" />
+          </div>
+          <div className="text-lg font-bold text-slate-800 dark:text-slate-100">MyNotes</div>
         </div>
         <div className="flex items-center space-x-4">
-          <ThemeSwitcher />
-          <button
-            onClick={onLogout}
-            className="px-4 py-2 text-sm font-semibold text-white bg-red-500 rounded-lg shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75 transition-colors"
-          >
-            Logout
-          </button>
+          {/* Profile Dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={toggleDropdown}
+              className="flex items-center gap-2 p-0.5 rounded-full transition-opacity focus:outline-none hover:opacity-70"
+            >
+              {userPhoto ? (
+                <img 
+                  src={userPhoto} 
+                  alt={userName}
+                  className="w-9 h-9 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700"
+                />
+              ) : (
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-sm font-semibold border-2 border-orange-200 dark:border-orange-900">
+                  {userName.charAt(0).toUpperCase()}
+                </div>
+              )}
+            </button>
+
+            {/* Dropdown Menu */}
+            {isDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden z-50">
+                {/* User Info */}
+                <div className="px-4 py-3.5 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-slate-800 dark:to-slate-800 border-b border-orange-100 dark:border-slate-700">
+                  <div className="flex items-center gap-3">
+                    {userPhoto ? (
+                      <img 
+                        src={userPhoto} 
+                        alt={userName}
+                        className="w-11 h-11 rounded-full object-cover border-2 border-white dark:border-slate-700"
+                      />
+                    ) : (
+                      <div className="w-11 h-11 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-semibold border-2 border-white dark:border-slate-700">
+                        {userName.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-slate-900 dark:text-slate-100 truncate text-sm">
+                        {userName}
+                      </p>
+                      <p className="text-xs text-slate-600 dark:text-slate-400 truncate mt-0.5">
+                        {userEmail}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Logout Button */}
+                <button
+                  onClick={handleLogoutClick}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left text-slate-700 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-slate-700/50 transition-colors"
+                >
+                  <LogOut className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                  <span className="text-sm font-medium">Logout</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </nav>

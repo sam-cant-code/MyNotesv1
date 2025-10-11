@@ -1,6 +1,8 @@
+// src/stores/noteStore.js
 import { create } from 'zustand';
 import axios from 'axios';
 import useAuthStore from './authStore';
+import toast from 'react-hot-toast'; // Import toast
 
 const useNoteStore = create((set, get) => ({
   notes: [],
@@ -23,6 +25,7 @@ const useNoteStore = create((set, get) => ({
     } catch (err) {
       console.error('Failed to fetch notes:', err);
       set({ error: 'Failed to fetch notes.', loading: false });
+      toast.error('Failed to fetch notes.'); // Error toast
     }
   },
 
@@ -44,9 +47,11 @@ const useNoteStore = create((set, get) => ({
         notes: [response.data, ...state.notes],
         loading: false,
       }));
+      toast.success('Note created successfully!'); // Success toast
     } catch (err) {
       console.error('Failed to add note:', err);
       set({ error: 'Failed to add note.', loading: false });
+      toast.error('Failed to create note.'); // Error toast
     }
   },
 
@@ -70,9 +75,11 @@ const useNoteStore = create((set, get) => ({
         ),
         loading: false,
       }));
+      toast.success('Note updated successfully!'); // Success toast
     } catch (err) {
       console.error('Failed to update note:', err);
       set({ error: 'Failed to update note.', loading: false });
+      toast.error('Failed to update note.'); // Error toast
     }
   },
 
@@ -92,9 +99,11 @@ const useNoteStore = create((set, get) => ({
         notes: state.notes.filter((note) => note.id !== noteId),
         loading: false,
       }));
+      toast.success('Note deleted successfully!'); // Success toast
     } catch (err) {
       console.error('Failed to delete note:', err);
       set({ error: 'Failed to delete note.', loading: false });
+      toast.error('Failed to delete note.'); // Error toast
     }
   },
 
@@ -116,9 +125,11 @@ const useNoteStore = create((set, get) => ({
           note.id === noteId ? response.data : note
         ),
       }));
+      toast.success(response.data.pinned ? 'Note pinned!' : 'Note unpinned!'); // Success toast
     } catch (err) {
       console.error('Failed to toggle pin:', err);
       set({ error: 'Failed to toggle pin.' });
+      toast.error('Failed to update pin status.'); // Error toast
     }
   },
 }));

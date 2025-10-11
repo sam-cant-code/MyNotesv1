@@ -2,7 +2,7 @@ import React from 'react';
 import NoteCard from './NoteCard';
 import EmptyNotesMessage from './EmptyNotesMessage';
 
-const NotesGrid = ({ notes, notesLoading, onEdit, viewMode, sortBy }) => {
+const NotesGrid = ({ notes, notesLoading, onEdit, viewMode, sortBy, searchQuery }) => {
   if (notesLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -14,12 +14,31 @@ const NotesGrid = ({ notes, notesLoading, onEdit, viewMode, sortBy }) => {
     );
   }
 
-  if (notes.length === 0) {
+  // Filter notes based on search query
+  let filteredNotes = notes;
+  if (searchQuery && searchQuery.trim() !== '') {
+    const query = searchQuery.toLowerCase();
+    filteredNotes = notes.filter(note => 
+      note.title.toLowerCase().includes(query) || 
+      (note.content && note.content.toLowerCase().includes(query))
+    );
+  }
+
+  if (filteredNotes.length === 0 && searchQuery) {
+    return (
+      <div className="text-center py-10">
+        <p className="text-slate-500 dark:text-slate-400">No notes found matching "{searchQuery}"</p>
+        <p className="text-slate-400 dark:text-slate-500 text-sm mt-2">Try a different search term</p>
+      </div>
+    );
+  }
+
+  if (filteredNotes.length === 0) {
     return <EmptyNotesMessage />;
   }
 
   // Sort notes
-  let sortedNotes = [...notes];
+  let sortedNotes = [...filteredNotes];
   if (sortBy === 'oldest') {
     sortedNotes = sortedNotes.sort((a, b) => {
       // Keep pinned notes at top

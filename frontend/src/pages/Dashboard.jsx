@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; // Corrected import
 import useAuthStore from '../stores/authStore';
 import useNoteStore from '../stores/noteStore';
 import NavigationBar from '../components/layout/NavigationBar';
-import WelcomeHeader from '../components/notes/WelcomeHeader';
+// import WelcomeHeader from '../components/notes/WelcomeHeader';
+import SearchBar from '../components/common/SearchBar';
 import CreateNoteForm from '../components/forms/CreateNoteForm';
 import EditNoteModal from '../components/forms/EditNoteModal';
 import NotesGrid from '../components/notes/NotesGrid';
@@ -24,6 +25,7 @@ const Dashboard = () => {
   const [editingNote, setEditingNote] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // 'grid', 'masonry', 'list'
   const [sortBy, setSortBy] = useState('newest'); // 'newest', 'oldest'
+  const [searchQuery, setSearchQuery] = useState(''); // Search state
 
   // Fetch profile and notes on component mount
   useEffect(() => {
@@ -73,15 +75,23 @@ const Dashboard = () => {
       <main className="flex-grow w-full pb-24">
         <div className="container px-6 py-8 mx-auto max-w-7xl">
           {/* Welcome Header */}
-          <WelcomeHeader userProfile={userProfile} />
+          {/* <WelcomeHeader userProfile={userProfile} /> */}
 
-          {/* View Controls */}
-          <ViewControls 
-            viewMode={viewMode}
-            setViewMode={setViewMode}
-            sortBy={sortBy}
-            setSortBy={setSortBy}
-          />
+          {/* Controls: Search, Sort, and View */}
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+            {/* Search Bar - takes up remaining space on larger screens */}
+            <div className="w-full md:max-w-sm">
+              <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+            </div>
+
+            {/* Sort and View Controls - grouped together */}
+            <ViewControls 
+              viewMode={viewMode}
+              setViewMode={setViewMode}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+            />
+          </div>
 
           {/* Create Note Form (Conditionally Rendered) */}
           {isCreateFormVisible && (
@@ -95,6 +105,7 @@ const Dashboard = () => {
             onEdit={handleEditNote}
             viewMode={viewMode}
             sortBy={sortBy}
+            searchQuery={searchQuery}
           />
         </div>
       </main>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import useNoteStore from '../../stores/noteStore';
 
@@ -7,81 +7,163 @@ const EditNoteModal = ({ note, onClose }) => {
   const [content, setContent] = useState(note.content || '');
   const updateNote = useNoteStore((state) => state.updateNote);
   const loading = useNoteStore((state) => state.loading);
+  const titleInputRef = useRef(null);
+  const textareaRef = useRef(null);
+
+  // Auto-focus title input when modal opens
+  useEffect(() => {
+    if (titleInputRef.current) {
+      titleInputRef.current.focus();
+      // Move cursor to end of input
+      titleInputRef.current.setSelectionRange(title.length, title.length);
+    }
+  }, []);
+
+  // Auto-resize textarea to fit content
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+    }
+  }, [content]);
+
+  // Handle escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && !loading) {
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose, loading]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim()) {
-      alert('Please provide a title for your note.');
+      titleInputRef.current?.focus();
       return;
     }
-    await updateNote(note.id, title, content);
+    await updateNote(note.id, title.trim(), content.trim());
     onClose();
   };
 
   // Close on background click
   const handleBackgroundClick = (e) => {
-    if (e.target === e.currentTarget) {
+    if (e.target === e.currentTarget && !loading) {
       onClose();
     }
   };
 
+  // Check if content has changed
+  const hasChanges = title !== note.title || content !== (note.content || '');
+
   return (
     <div 
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-start justify-center z-50 p-4 overflow-y-auto"
       onClick={handleBackgroundClick}
     >
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 p-6 flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Edit Note</h2>
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-2xl my-8 flex flex-col border border-slate-200 dark:border-slate-800">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            Edit Note
+          </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+            disabled={loading}
+            className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Close modal"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6">
-          <div className="mb-4">
-            <label className="block text-sm font-semibold mb-2">Title</label>
+        {/* Content */}
+        <div className="px-6 py-5">
+          {/* Title Input */}
+          <div className="mb-5">
+            <label htmlFor="note-title" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              Title
+            </label>
             <input
+              ref={titleInputRef}
+              id="note-title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Note Title"
-              className="w-full px-4 py-3 border rounded-lg dark:bg-slate-700 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              placeholder="Enter note title"
+              className="w-full px-3.5 py-2.5 text-base border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-slate-500 dark:focus:border-slate-400 focus:ring-2 focus:ring-slate-400/20 transition-all caret-orange-500 dark:caret-orange-500"
               required
-              autoFocus
             />
+            {!title.trim() && title.length > 0 && (
+              <p className="mt-1.5 text-xs text-red-500">Title is required</p>
+            )}
           </div>
-          <div className="mb-6">
-            <label className="block text-sm font-semibold mb-2">Content</label>
+
+          {/* Content Textarea */}
+          <div>
+            <label htmlFor="note-content" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              Content
+            </label>
             <textarea
+              ref={textareaRef}
+              id="note-content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Take a note..."
-              rows="10"
-              className="w-full px-4 py-3 border rounded-lg dark:bg-slate-700 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
-            ></textarea>
+              placeholder="Write your note here..."
+              className="w-full px-3.5 py-2.5 text-base border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-slate-500 dark:focus:border-slate-400 focus:ring-2 focus:ring-slate-400/20 transition-all resize-none overflow-hidden min-h-[200px] caret-orange-500 dark:caret-orange-500"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                  handleSubmit(e);
+                }
+              }}
+            />
+            <div className="mt-2 flex items-center justify-between">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {content.length} characters
+              </p>
+              {hasChanges && (
+                <p className="text-xs text-orange-600 dark:text-orange-500 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
+                  Unsaved changes
+                </p>
+              )}
+            </div>
           </div>
-          <div className="flex justify-end gap-3">
+        </div>
+
+        {/* Footer Actions */}
+        <div className="px-6 py-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 rounded-b-xl">
+          <div className="flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2 font-semibold border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+              disabled={loading}
+              className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               Cancel
             </button>
             <button
-              type="submit"
-              disabled={loading}
-              className="px-5 py-2 font-semibold text-white bg-amber-500 rounded-lg shadow-sm hover:bg-amber-600 disabled:bg-amber-400 disabled:cursor-wait transition-colors"
+              type="button"
+              onClick={handleSubmit}
+              disabled={loading || !title.trim()}
+              className="px-4 py-2 text-sm font-medium text-white bg-slate-600 dark:bg-slate-700 rounded-lg hover:bg-slate-700 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
             >
-              {loading ? 'Saving...' : 'Save Changes'}
+              {loading ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Saving...
+                </span>
+              ) : (
+                'Save Changes'
+              )}
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

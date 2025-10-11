@@ -1,1 +1,18 @@
 
+/* Remove default focus outlines */
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: none;
+}
+
+/* Remove ring utilities on focus */
+button:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
