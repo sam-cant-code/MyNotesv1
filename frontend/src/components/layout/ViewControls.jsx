@@ -12,7 +12,7 @@ const ViewControls = ({ viewMode, setViewMode, sortBy, setSortBy }) => {
             onClick={() => setViewMode('grid')}
             className={`p-2 rounded-md transition-colors focus:outline-none ${
               viewMode === 'grid'
-                ? 'bg-white dark:bg-slate-700 shadow-sm'
+                ? 'bg-orange-600 text-white shadow-sm'
                 : 'hover:bg-slate-200 dark:hover:bg-slate-700'
             }`}
             title="Grid view"
@@ -23,7 +23,7 @@ const ViewControls = ({ viewMode, setViewMode, sortBy, setSortBy }) => {
             onClick={() => setViewMode('masonry')}
             className={`p-2 rounded-md transition-colors focus:outline-none ${
               viewMode === 'masonry'
-                ? 'bg-white dark:bg-slate-700 shadow-sm'
+                ? 'bg-orange-600 text-white shadow-sm'
                 : 'hover:bg-slate-200 dark:hover:bg-slate-700'
             }`}
             title="Masonry view"
@@ -34,7 +34,7 @@ const ViewControls = ({ viewMode, setViewMode, sortBy, setSortBy }) => {
             onClick={() => setViewMode('list')}
             className={`p-2 rounded-md transition-colors focus:outline-none ${
               viewMode === 'list'
-                ? 'bg-white dark:bg-slate-700 shadow-sm'
+                ? 'bg-orange-600 text-white shadow-sm'
                 : 'hover:bg-slate-200 dark:hover:bg-slate-700'
             }`}
             title="List view"
@@ -52,7 +52,7 @@ const ViewControls = ({ viewMode, setViewMode, sortBy, setSortBy }) => {
             onClick={() => setSortBy('newest')}
             className={`px-3 py-2 rounded-md transition-colors text-sm font-medium flex items-center gap-1 focus:outline-none ${
               sortBy === 'newest'
-                ? 'bg-white dark:bg-slate-700 shadow-sm'
+                ? 'bg-orange-600 text-white shadow-sm'
                 : 'hover:bg-slate-200 dark:hover:bg-slate-700'
             }`}
           >
@@ -63,7 +63,7 @@ const ViewControls = ({ viewMode, setViewMode, sortBy, setSortBy }) => {
             onClick={() => setSortBy('oldest')}
             className={`px-3 py-2 rounded-md transition-colors text-sm font-medium flex items-center gap-1 focus:outline-none ${
               sortBy === 'oldest'
-                ? 'bg-white dark:bg-slate-700 shadow-sm'
+                ? 'bg-orange-600 text-white shadow-sm'
                 : 'hover:bg-slate-200 dark:hover:bg-slate-700'
             }`}
           >

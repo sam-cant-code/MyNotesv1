@@ -67,7 +67,10 @@ const Login = () => {
     <div className="flex flex-col min-h-screen font-sans bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-50">
       <nav className="w-full border-b border-slate-200 dark:border-slate-700">
         <div className="container mx-auto px-6 py-4">
-          <div className="text-xl font-extrabold">MyNotes</div>
+          <div className="text-xl font-extrabold">
+            <span className="text-orange-600">My</span>
+            <span className="text-slate-900 dark:text-slate-50">Notes</span>
+          </div>
         </div>
       </nav>
 
@@ -75,7 +78,7 @@ const Login = () => {
         <h1 className="w-fit mx-auto text-5xl font-bold sm:text-6xl md:text-7xl">
           <span>{staticText}</span>
           <span>{typedText}</span>
-          <span className="ml-1 text-amber-500 animate-pulse">|</span>
+          <span className="ml-1 text-orange-600 animate-pulse">|</span>
         </h1>
         <p className="max-w-xl mx-auto mt-6 text-lg text-slate-600 dark:text-slate-400">
           The fastest way to capture, organize, and access your notes anywhere. Fast, simple,
@@ -85,9 +88,9 @@ const Login = () => {
           onClick={handleLogin}
           disabled={isLoggingIn} // Disable button when logging in
           className={`
-            px-8 py-3 mt-8 font-semibold text-white bg-amber-500 rounded-lg shadow-sm
+            px-8 py-3 mt-8 font-semibold text-white bg-orange-600 rounded-lg shadow-sm
             transform transition-all duration-1000 ease-out 
-            hover:bg-amber-600 disabled:bg-amber-400 disabled:cursor-not-allowed
+            hover:bg-orange-700 disabled:bg-orange-400 disabled:cursor-not-allowed
             ${isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}
           `}
           style={{ transitionDelay: '1200ms' }}
@@ -109,7 +112,7 @@ const Login = () => {
               `}
               style={{ transitionDelay: `${index * 200}ms` }}
             >
-              <div className="text-amber-500">
+              <div className="text-orange-600">
                 {feature.icon}
               </div>
               <h3 className="mt-4 font-bold">{feature.title}</h3>

@@ -1,1 +1,20 @@
 @import "tailwindcss";
+
+/* Remove old Quill styles and replace with Tiptap styles */
+
+/* Basic Tiptap Editor Styling */
+.tiptap {
+  padding: 0.75rem;
+}
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #9ca3af; /* text-gray-400 */
+  pointer-events: none;
+  height: 0;
+}
+
+/* Ensure lists inside note cards are styled by Typography plugin */
+.note-content ul, .note-content ol {
+    padding-left: 1.5rem;
+}

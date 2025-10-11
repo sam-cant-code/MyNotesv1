@@ -1,8 +1,7 @@
-// src/stores/noteStore.js
 import { create } from 'zustand';
 import axios from 'axios';
 import useAuthStore from './authStore';
-import toast from 'react-hot-toast'; // Import toast
+import toast from 'react-hot-toast';
 
 const useNoteStore = create((set, get) => ({
   notes: [],
@@ -25,7 +24,7 @@ const useNoteStore = create((set, get) => ({
     } catch (err) {
       console.error('Failed to fetch notes:', err);
       set({ error: 'Failed to fetch notes.', loading: false });
-      toast.error('Failed to fetch notes.'); // Error toast
+      toast.error('Failed to fetch notes.');
     }
   },
 
@@ -37,21 +36,24 @@ const useNoteStore = create((set, get) => ({
       return set({ loading: false, error: 'Authentication token not found.' });
     }
 
+    // Use 'Untitled Note' if title is empty
+    const noteTitle = title.trim() === '' ? 'Untitled Note' : title;
+
     try {
       const response = await axios.post(
         'http://localhost:4000/api/notes',
-        { title, content },
+        { title: noteTitle, content },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       set((state) => ({
         notes: [response.data, ...state.notes],
         loading: false,
       }));
-      toast.success('Note created successfully!'); // Success toast
+      toast.success('Note created successfully!');
     } catch (err) {
       console.error('Failed to add note:', err);
       set({ error: 'Failed to add note.', loading: false });
-      toast.error('Failed to create note.'); // Error toast
+      toast.error('Failed to create note.');
     }
   },
 
@@ -63,10 +65,13 @@ const useNoteStore = create((set, get) => ({
       return set({ loading: false, error: 'Authentication token not found.' });
     }
 
+    // Use 'Untitled Note' if title is empty
+    const noteTitle = title.trim() === '' ? 'Untitled Note' : title;
+
     try {
       const response = await axios.put(
         `http://localhost:4000/api/notes/${noteId}`,
-        { title, content },
+        { title: noteTitle, content },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       set((state) => ({
@@ -75,11 +80,11 @@ const useNoteStore = create((set, get) => ({
         ),
         loading: false,
       }));
-      toast.success('Note updated successfully!'); // Success toast
+      toast.success('Note updated successfully!');
     } catch (err) {
       console.error('Failed to update note:', err);
       set({ error: 'Failed to update note.', loading: false });
-      toast.error('Failed to update note.'); // Error toast
+      toast.error('Failed to update note.');
     }
   },
 
@@ -99,11 +104,11 @@ const useNoteStore = create((set, get) => ({
         notes: state.notes.filter((note) => note.id !== noteId),
         loading: false,
       }));
-      toast.success('Note deleted successfully!'); // Success toast
+      toast.success('Note deleted successfully!');
     } catch (err) {
       console.error('Failed to delete note:', err);
       set({ error: 'Failed to delete note.', loading: false });
-      toast.error('Failed to delete note.'); // Error toast
+      toast.error('Failed to delete note.');
     }
   },
 
@@ -125,11 +130,11 @@ const useNoteStore = create((set, get) => ({
           note.id === noteId ? response.data : note
         ),
       }));
-      toast.success(response.data.pinned ? 'Note pinned!' : 'Note unpinned!'); // Success toast
+      toast.success(response.data.pinned ? 'Note pinned!' : 'Note unpinned!');
     } catch (err) {
       console.error('Failed to toggle pin:', err);
       set({ error: 'Failed to toggle pin.' });
-      toast.error('Failed to update pin status.'); // Error toast
+      toast.error('Failed to update pin status.');
     }
   },
 }));

@@ -37,7 +37,7 @@ const NoteCard = ({ note, onEdit, viewMode }) => {
         <div className="flex-1 min-w-0 cursor-pointer" onClick={handleEdit}>
           <div className="flex items-start gap-2 mb-1">
             {note.pinned && (
-              <Pin className="w-3 h-3 text-orange-500 fill-orange-500 flex-shrink-0 mt-1" />
+              <Pin className="w-3 h-3 text-orange-600 fill-orange-600 flex-shrink-0 mt-1" />
             )}
             <h3 className="text-slate-900 dark:text-slate-100 break-words overflow-wrap-anywhere">
               {note.title}
@@ -53,14 +53,14 @@ const NoteCard = ({ note, onEdit, viewMode }) => {
         <div className="flex gap-1 flex-shrink-0">
           <button
             onClick={handleTogglePin}
-            className={`p-1.5 text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 ${note.pinned ? 'text-orange-500' : ''}`}
+            className={`p-1.5 text-slate-400 hover:text-orange-600 dark:hover:text-orange-500 ${note.pinned ? 'text-orange-600' : ''}`}
             title={note.pinned ? 'Unpin' : 'Pin'}
           >
             <Pin className={`w-3.5 h-3.5 ${note.pinned ? 'fill-current' : ''}`} />
           </button>
           <button
             onClick={handleEdit}
-            className="p-1.5 text-slate-400 hover:text-orange-500 dark:hover:text-orange-400"
+            className="p-1.5 text-slate-400 hover:text-orange-600 dark:hover:text-orange-500"
             title="Edit"
           >
             <Edit2 className="w-3.5 h-3.5" />
@@ -85,7 +85,7 @@ const NoteCard = ({ note, onEdit, viewMode }) => {
     >
       {/* Pin indicator */}
       {note.pinned && (
-        <Pin className="absolute top-3 right-3 w-3.5 h-3.5 text-orange-500 fill-orange-500" />
+        <Pin className="absolute top-3 right-3 w-3.5 h-3.5 text-orange-600 fill-orange-600" />
       )}
 
       {/* Note content */}
@@ -101,14 +101,14 @@ const NoteCard = ({ note, onEdit, viewMode }) => {
       <div className="absolute bottom-3 right-3 flex gap-1">
         <button
           onClick={handleTogglePin}
-          className={`p-1 text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 opacity-0 group-hover:opacity-100 ${note.pinned ? 'text-orange-500 opacity-100' : ''}`}
+          className={`p-1 text-slate-400 hover:text-orange-600 dark:hover:text-orange-500 opacity-0 group-hover:opacity-100 ${note.pinned ? 'text-orange-600 opacity-100' : ''}`}
           title={note.pinned ? 'Unpin' : 'Pin'}
         >
           <Pin className={`w-3.5 h-3.5 ${note.pinned ? 'fill-current' : ''}`} />
         </button>
         <button
           onClick={handleEdit}
-          className="p-1 text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 opacity-0 group-hover:opacity-100"
+          className="p-1 text-slate-400 hover:text-orange-600 dark:hover:text-orange-500 opacity-0 group-hover:opacity-100"
           title="Edit"
         >
           <Edit2 className="w-3.5 h-3.5" />
