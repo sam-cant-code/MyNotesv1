@@ -51,9 +51,9 @@ export const ensureNoteTagsTableExists = async () => {
   }
 };
 
-// --- (Original ensureNotesTableExists function stays here) ---
+// --- UPDATED: ensureNotesTableExists ---
+// Added `updated_at` column and an auto-update trigger
 export const ensureNotesTableExists = async () => {
-  // ... (keep your existing function as is)
   console.log("🔄 Starting notes table creation process...");
   
   try {
@@ -84,6 +84,7 @@ export const ensureNotesTableExists = async () => {
         content TEXT,
         pinned BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP, -- <-- NEW COLUMN
         CONSTRAINT fk_user
             FOREIGN KEY(user_id) 
             REFERENCES users(id)
@@ -94,6 +95,7 @@ export const ensureNotesTableExists = async () => {
     await pool.query(createTableQuery);
     console.log("✅ Notes table created successfully");
 
+    // --- (Keep existing pinned column check) ---
     console.log("🔄 Ensuring pinned column exists...");
     const addPinnedColumn = `
       DO $$ 
@@ -109,6 +111,47 @@ export const ensureNotesTableExists = async () => {
     await pool.query(addPinnedColumn);
     console.log("✅ Pinned column ensured");
 
+    // --- (Ensure updated_at column exists on old tables) ---
+    console.log("🔄 Ensuring updated_at column exists...");
+    const addUpdatedAtColumn = `
+      DO $$ 
+      BEGIN 
+        BEGIN
+          ALTER TABLE notes ADD COLUMN updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP;
+        EXCEPTION
+          WHEN duplicate_column THEN 
+            NULL;
+        END;
+      END $$;
+    `;
+    await pool.query(addUpdatedAtColumn);
+    console.log("✅ updated_at column ensured");
+    
+    // --- (Create function to auto-update updated_at) ---
+    console.log("🔄 Creating/Updating timestamp trigger function...");
+    const createFunctionQuery = `
+      CREATE OR REPLACE FUNCTION update_updated_at_column()
+      RETURNS TRIGGER AS $$
+      BEGIN
+         NEW.updated_at = CURRENT_TIMESTAMP;
+         RETURN NEW;
+      END;
+      $$ language 'plpgsql';
+    `;
+    await pool.query(createFunctionQuery);
+    
+    // --- (Apply trigger to notes table) ---
+    console.log("🔄 Applying timestamp trigger to 'notes' table...");
+    const createTriggerQuery = `
+      DROP TRIGGER IF EXISTS update_notes_updated_at ON notes;
+      CREATE TRIGGER update_notes_updated_at
+      BEFORE UPDATE ON notes
+      FOR EACH ROW
+      EXECUTE PROCEDURE update_updated_at_column();
+    `;
+    await pool.query(createTriggerQuery);
+    console.log("✅ Timestamp trigger applied");
+
     console.log("✅ Notes table is ready and verified");
     
   } catch (err) {
@@ -116,7 +159,7 @@ export const ensureNotesTableExists = async () => {
     throw err;
   }
 };
-// --- (End of original ensureNotesTableExists) ---
+// --- (End of updated ensureNotesTableExists) ---
 
 
 // --- NEW HELPER: findOrCreateTags ---
@@ -180,6 +223,7 @@ const syncNoteTags = async (noteId, tagIds) => {
 
 // --- UPDATED: findNotesByUserId ---
 // We now join with tags to get all tags for each note.
+// `n.*` will now include `updated_at`.
 export const findNotesByUserId = async (userId) => {
   console.log(`🔍 Finding notes for user ID: ${userId}`);
   
@@ -197,7 +241,7 @@ export const findNotesByUserId = async (userId) => {
         ) AS tags
       FROM notes n
       WHERE n.user_id = $1
-      ORDER BY n.pinned DESC, n.created_at DESC;
+      ORDER BY n.pinned DESC, n.updated_at DESC; -- <-- Sort by updated_at
     `;
     const { rows } = await pool.query(query, [userId]);
     console.log(`✅ Found ${rows.length} notes`);
@@ -209,7 +253,7 @@ export const findNotesByUserId = async (userId) => {
 };
 
 // --- UPDATED: createNoteForUser ---
-// Now accepts `tags` (an array of strings)
+// `RETURNING *` will include the new `updated_at` field.
 export const createNoteForUser = async ({ userId, title, content, tags = [] }) => {
   console.log(`🔍 Creating note for user ID: ${userId}`);
   
@@ -251,7 +295,7 @@ export const createNoteForUser = async ({ userId, title, content, tags = [] }) =
 };
 
 // --- UPDATED: updateNoteById ---
-// Now accepts `tags` and performs a sync
+// The trigger will handle `updated_at`. `RETURNING *` will return it.
 export const updateNoteById = async (noteId, userId, { title, content, tags = [] }) => {
   const client = await pool.connect();
   try {
@@ -298,6 +342,7 @@ export const deleteNoteById = async (noteId, userId) => {
 };
 
 // --- (togglePinNote is FIXED) ---
+// The trigger will handle `updated_at`. `RETURNING *` will return it.
 export const togglePinNote = async (noteId, userId) => {
   const query = "UPDATE notes SET pinned = NOT pinned WHERE id = $1 AND user_id = $2 RETURNING *";
   

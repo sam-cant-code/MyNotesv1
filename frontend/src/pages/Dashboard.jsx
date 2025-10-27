@@ -11,6 +11,7 @@ import FloatingActionButton from '../components/common/FloatingActionButton';
 import ViewControls from '../components/layout/ViewControls';
 import AiChatbot from '../components/common/AiChatbot'; 
 import { Sparkles } from 'lucide-react'; 
+import TagFilter from '../components/common/TagFilter'; // --- NEW IMPORT ---
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -19,8 +20,8 @@ const Dashboard = () => {
   const { userProfile, error: authError, fetchProfile, logout } = useAuthStore();
 
   // Note store state
-  // --- UPDATED: Get fetchTags ---
-  const { notes, fetchNotes, fetchTags, loading: notesLoading } = useNoteStore();
+  // --- UPDATED: Get fetchTags and allTags ---
+  const { notes, allTags, fetchNotes, fetchTags, loading: notesLoading } = useNoteStore();
 
   // Local state
   const [isCreateFormVisible, setCreateFormVisible] = useState(false);
@@ -28,6 +29,7 @@ const Dashboard = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [sortBy, setSortBy] = useState('newest');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTag, setSelectedTag] = useState(''); // --- NEW STATE ---
   const [isAiChatbotVisible, setAiChatbotVisible] = useState(false);
 
   // Fetch profile, notes, and tags on component mount
@@ -76,11 +78,24 @@ const Dashboard = () => {
 
       <main className="flex-grow w-full pb-24">
         <div className="container px-6 py-8 mx-auto max-w-7xl">
+          {/* --- LAYOUT UPDATED --- */}
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
-            <div className="w-full md:max-w-sm">
-              <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+            
+            {/* 1. Group for Search and Filter */}
+            <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+              <div className="w-full md:max-w-sm">
+                <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+              </div>
+              <div className="w-full">
+                <TagFilter 
+                  allTags={allTags}
+                  selectedTag={selectedTag}
+                  setSelectedTag={setSelectedTag}
+                />
+              </div>
             </div>
-            {/* TODO: Add Tag Filter Dropdown Here Later */}
+            
+            {/* 2. View Controls */}
             <ViewControls 
               viewMode={viewMode}
               setViewMode={setViewMode}
@@ -88,6 +103,7 @@ const Dashboard = () => {
               setSortBy={setSortBy}
             />
           </div>
+          {/* --- END LAYOUT UPDATE --- */}
 
           {isCreateFormVisible && <CreateNoteForm onNoteCreated={handleNoteCreated} />}
 
@@ -98,6 +114,7 @@ const Dashboard = () => {
             viewMode={viewMode}
             sortBy={sortBy}
             searchQuery={searchQuery}
+            selectedTag={selectedTag} // --- PASS PROP ---
           />
         </div>
       </main>
@@ -108,7 +125,7 @@ const Dashboard = () => {
         <>
           <button
             onClick={() => setAiChatbotVisible(true)}
-            className="fixed bottom-28 right-8 w-14 h-14 bg-gray-200 dark:bg-gray-700 rounded-full shadow-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all z-50 focus:outline-none focus:ring-2 focus:ring-orange-600 flex items-center justify-center group"
+            className="fixed bottom-28 right-8 w-14 h-14 bg-slate-100 dark:bg-slate-700 rounded-full shadow-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-all z-50 focus:outline-none focus:ring-2 focus:ring-orange-600 flex items-center justify-center group"
             aria-label="Open AI Note Creator"
           >
             <Sparkles className="w-6 h-6 text-orange-600 transition-transform group-hover:scale-110" />

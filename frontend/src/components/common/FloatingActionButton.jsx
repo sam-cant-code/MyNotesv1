@@ -5,8 +5,8 @@ const FloatingActionButton = ({ onClick }) => {
   return (
     <button
       onClick={onClick}
-      className="fixed bottom-8 right-8 w-14 h-14 bg-gray-200 dark:bg-gray-700 rounded-full shadow-lg 
-                 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors z-50 
+      className="fixed bottom-8 right-8 w-14 h-14 bg-slate-100 dark:bg-slate-700 rounded-full shadow-lg 
+                 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors z-50 
                  focus:outline-none focus:ring-2 focus:ring-orange-600 
                  flex items-center justify-center group" 
       aria-label="Add new note"

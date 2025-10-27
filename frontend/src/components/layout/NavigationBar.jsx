@@ -34,7 +34,7 @@ const NavigationBar = ({ onLogout }) => {
   const userPhoto = userProfile?.user?.photoURL;
 
   return (
-    <nav className="w-full border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+    <nav className="w-full border-b border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900">
       <div className="container flex items-center justify-between px-6 py-3.5 mx-auto">
         <div className="flex items-center gap-2.5">
           {/* Removed the StickyNote icon div */}
@@ -65,7 +65,7 @@ const NavigationBar = ({ onLogout }) => {
 
             {/* Dropdown Menu */}
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden z-50">
+              <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-600 overflow-hidden z-50">
                 {/* User Info */}
                 <div className="px-4 py-3.5 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-slate-800 dark:to-slate-800 border-b border-orange-200 dark:border-slate-700">
                   <div className="flex items-center gap-3">

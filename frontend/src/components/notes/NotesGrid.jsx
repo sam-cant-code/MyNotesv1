@@ -2,7 +2,8 @@ import React from 'react';
 import NoteCard from './NoteCard';
 import EmptyNotesMessage from './EmptyNotesMessage';
 
-const NotesGrid = ({ notes, notesLoading, onEdit, viewMode, sortBy, searchQuery }) => {
+// --- ADD `selectedTag` TO PROPS ---
+const NotesGrid = ({ notes, notesLoading, onEdit, viewMode, sortBy, searchQuery, selectedTag }) => {
   if (notesLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -14,21 +15,33 @@ const NotesGrid = ({ notes, notesLoading, onEdit, viewMode, sortBy, searchQuery 
     );
   }
 
-  // Filter notes based on search query
+  // --- UPDATED FILTERING LOGIC ---
   let filteredNotes = notes;
+
+  // 1. Filter by search query
   if (searchQuery && searchQuery.trim() !== '') {
     const query = searchQuery.toLowerCase();
-    filteredNotes = notes.filter(note => 
+    filteredNotes = filteredNotes.filter(note => 
       note.title.toLowerCase().includes(query) || 
       (note.content && note.content.toLowerCase().includes(query))
     );
   }
 
-  if (filteredNotes.length === 0 && searchQuery) {
+  // 2. Filter by selected tag
+  if (selectedTag) {
+    filteredNotes = filteredNotes.filter(note => 
+      note.tags && note.tags.includes(selectedTag)
+    );
+  }
+  // --- END UPDATED FILTERING LOGIC ---
+
+
+  // --- UPDATED EMPTY MESSAGE ---
+  if (filteredNotes.length === 0 && (searchQuery || selectedTag)) {
     return (
       <div className="text-center py-10">
-        <p className="text-slate-500 dark:text-slate-400">No notes found matching "{searchQuery}"</p>
-        <p className="text-slate-400 dark:text-slate-500 text-sm mt-2">Try a different search term</p>
+        <p className="text-slate-500 dark:text-slate-400">No notes found matching your filters.</p>
+        <p className="text-slate-400 dark:text-slate-500 text-sm mt-2">Try a different search or tag filter</p>
       </div>
     );
   }
@@ -36,6 +49,8 @@ const NotesGrid = ({ notes, notesLoading, onEdit, viewMode, sortBy, searchQuery 
   if (filteredNotes.length === 0) {
     return <EmptyNotesMessage />;
   }
+  // --- END UPDATED EMPTY MESSAGE ---
+
 
   // Sort notes
   let sortedNotes = [...filteredNotes];
