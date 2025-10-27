@@ -1,7 +1,5 @@
 @import "tailwindcss";
 
-/* Remove old Quill styles and replace with Tiptap styles */
-
 /* Basic Tiptap Editor Styling */
 .tiptap {
   padding: 0.75rem;
@@ -14,7 +12,14 @@
   height: 0;
 }
 
-/* Ensure lists inside note cards are styled by Typography plugin */
-.note-content ul, .note-content ol {
-    padding-left: 1.5rem;
+/* Ensure lists inside Tiptap's output (using .prose) are styled */
+.prose ul, .prose ol {
+  padding-left: 1.5rem; /* or theme('padding.6') */
+  list-style-position: outside;
+}
+.prose ul {
+  list-style-type: disc;
+}
+.prose ol {
+  list-style-type: decimal;
 }

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAuthStore from '../stores/authStore';
 import useNoteStore from '../stores/noteStore';
-import NavigationBar from '../components/layout/NavigationBar'; // <-- This line was missing
+import NavigationBar from '../components/layout/NavigationBar';
 import SearchBar from '../components/common/SearchBar';
 import CreateNoteForm from '../components/forms/CreateNoteForm';
 import EditNoteModal from '../components/forms/EditNoteModal';
@@ -19,7 +19,8 @@ const Dashboard = () => {
   const { userProfile, error: authError, fetchProfile, logout } = useAuthStore();
 
   // Note store state
-  const { notes, fetchNotes, loading: notesLoading } = useNoteStore();
+  // --- UPDATED: Get fetchTags ---
+  const { notes, fetchNotes, fetchTags, loading: notesLoading } = useNoteStore();
 
   // Local state
   const [isCreateFormVisible, setCreateFormVisible] = useState(false);
@@ -27,13 +28,14 @@ const Dashboard = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [sortBy, setSortBy] = useState('newest');
   const [searchQuery, setSearchQuery] = useState('');
-  const [isAiChatbotVisible, setAiChatbotVisible] = useState(false); // State for chatbot visibility
+  const [isAiChatbotVisible, setAiChatbotVisible] = useState(false);
 
-  // Fetch profile and notes on component mount
+  // Fetch profile, notes, and tags on component mount
   useEffect(() => {
     fetchProfile();
     fetchNotes();
-  }, [fetchProfile, fetchNotes]);
+    fetchTags(); // --- FETCH TAGS ---
+  }, [fetchProfile, fetchNotes, fetchTags]); // --- ADD DEPENDENCY ---
 
   // Handle logout
   const handleLogout = () => {
@@ -78,6 +80,7 @@ const Dashboard = () => {
             <div className="w-full md:max-w-sm">
               <SearchBar searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
             </div>
+            {/* TODO: Add Tag Filter Dropdown Here Later */}
             <ViewControls 
               viewMode={viewMode}
               setViewMode={setViewMode}

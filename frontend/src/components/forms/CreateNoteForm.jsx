@@ -4,7 +4,7 @@ import useNoteStore from '../../stores/noteStore.js';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 
-// Reusable Toolbar Component for Tiptap
+// ... (Keep the TiptapToolbar component as is) ...
 const TiptapToolbar = ({ editor }) => {
   if (!editor) {
     return null;
@@ -46,6 +46,7 @@ const TiptapToolbar = ({ editor }) => {
 
 const CreateNoteForm = ({ onNoteCreated }) => {
   const [title, setTitle] = useState('');
+  const [tags, setTags] = useState(''); // --- NEW STATE for tags input ---
   const addNote = useNoteStore((state) => state.addNote);
   const loading = useNoteStore((state) => state.loading);
   const titleInputRef = useRef(null);
@@ -66,10 +67,19 @@ const CreateNoteForm = ({ onNoteCreated }) => {
     }
   }, []);
 
+  // Helper to parse tags string into an array
+  const parseTags = (tagsString) => {
+    return tagsString
+      .split(',')
+      .map(tag => tag.trim())
+      .filter(tag => tag.length > 0);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const htmlContent = editor.getHTML();
-    await addNote(title, htmlContent);
+    const tagsArray = parseTags(tags); // --- Parse tags ---
+    await addNote(title, htmlContent, tagsArray); // --- Pass tags to store ---
     onNoteCreated();
   };
 
@@ -113,54 +123,72 @@ const CreateNoteForm = ({ onNoteCreated }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-6 py-5">
-          <div className="mb-5">
-            <label htmlFor="note-title" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Title
-            </label>
-            <input
-              ref={titleInputRef}
-              id="note-title"
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter note title"
-              className="w-full px-3.5 py-2.5 text-base border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 focus:outline-none focus:border-orange-600 focus:ring-2 focus:ring-orange-600/20 caret-orange-600"
-              autoFocus
-            />
+        {/* Form is now outside the div so submit button works */}
+        <form onSubmit={handleSubmit} className="flex flex-col flex-grow">
+          <div className="px-6 py-5 flex-grow">
+            <div className="mb-5">
+              <label htmlFor="note-title" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Title
+              </label>
+              <input
+                ref={titleInputRef}
+                id="note-title"
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Enter note title"
+                className="w-full px-3.5 py-2.5 text-base border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 focus:outline-none focus:border-orange-600 focus:ring-2 focus:ring-orange-600/20 caret-orange-600"
+                autoFocus
+              />
+            </div>
+
+            {/* --- NEW TAGS INPUT --- */}
+            <div className="mb-5">
+              <label htmlFor="note-tags" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Tags (comma separated)
+              </label>
+              <input
+                id="note-tags"
+                type="text"
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+                placeholder="e.g. work, recipe, todo"
+                className="w-full px-3.5 py-2.5 text-base border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 focus:outline-none focus:border-orange-600 focus:ring-2 focus:ring-orange-600/20 caret-orange-600"
+              />
+            </div>
+            {/* ---------------------- */}
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Content
+              </label>
+              <div className="rounded-lg border border-slate-300 dark:border-slate-600 focus-within:border-orange-600 focus-within:ring-2 focus-within:ring-orange-600/20 overflow-hidden">
+                <TiptapToolbar editor={editor} />
+                <EditorContent editor={editor} />
+              </div>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Content
-            </label>
-            <div className="rounded-lg border border-slate-300 dark:border-slate-600 focus-within:border-orange-600 focus-within:ring-2 focus-within:ring-orange-600/20 overflow-hidden">
-              <TiptapToolbar editor={editor} />
-              <EditorContent editor={editor} />
+          <div className="px-6 py-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 rounded-b-xl">
+            <div className="flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={handleCancel}
+                disabled={loading}
+                className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-600 disabled:opacity-50"
+              >
+                {loading ? 'Saving...' : 'Save Note'}
+              </button>
             </div>
           </div>
         </form>
-
-        <div className="px-6 py-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 rounded-b-xl">
-          <div className="flex items-center justify-end gap-3">
-            <button
-              type="button"
-              onClick={handleCancel}
-              disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              onClick={handleSubmit}
-              disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-600 disabled:opacity-50"
-            >
-              {loading ? 'Saving...' : 'Save Note'}
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );

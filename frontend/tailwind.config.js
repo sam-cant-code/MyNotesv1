@@ -4,9 +4,12 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}", // Scans your source files for Tailwind classes
   ],
-  darkMode: 'class', // <-- This is the crucial line that enables class-based dark mode
+  darkMode: 'class',
   theme: {
     extend: {},
   },
-  plugins: [],
+  // --- ADD THIS PLUGINS SECTION ---
+  plugins: [
+    require('@tailwindcss/typography'),
+  ],
 }

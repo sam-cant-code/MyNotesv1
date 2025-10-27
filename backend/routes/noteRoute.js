@@ -6,6 +6,7 @@ import {
   updateNote,
   deleteNote,
   togglePin,
+  getTagsForUser, // --- NEW IMPORT ---
 } from "../controllers/noteController.js";
 
 const router = Router();
@@ -13,6 +14,9 @@ const router = Router();
 router.use(protect);
 
 router.route("/").get(getNotesForUser).post(createNote);
+
+// --- NEW ROUTE ---
+router.route("/tags").get(getTagsForUser);
 
 router.route("/:id/pin").patch(togglePin);
 

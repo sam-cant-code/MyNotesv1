@@ -9,7 +9,12 @@ import "./config/passport.js"; // This ensures passport config is loaded
 
 // --- Model Imports for Table Creation ---
 import { ensureUsersTableExists } from "./models/userModel.js";
-import { ensureNotesTableExists } from "./models/noteModel.js";
+// UPDATED IMPORT
+import {
+  ensureNotesTableExists,
+  ensureTagsTableExists,
+  ensureNoteTagsTableExists,
+} from "./models/noteModel.js";
 
 // --- Route Imports ---
 import authRoutes from "./routes/authRoute.js";
@@ -55,6 +60,10 @@ const startServer = async () => {
     // Step 2: Ensure all required tables exist. The server will not start if this fails.
     await ensureUsersTableExists();
     await ensureNotesTableExists();
+    // --- ADDED NEW TABLE CHECKS ---
+    await ensureTagsTableExists();
+    await ensureNoteTagsTableExists();
+    // -------------------------------
 
     // Step 3: Only after the database is ready, start listening for requests.
     app.listen(PORT, () => {
