@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { CornerDownLeft, X, Sparkles, Loader, Bot, User } from 'lucide-react';
+import { CornerDownLeft, X, Sparkles, Loader, Bot, User, AlertTriangle } from 'lucide-react';
 import useNoteStore from '../../stores/noteStore';
 import useAuthStore from '../../stores/authStore';
 import axios from 'axios';
@@ -10,19 +10,19 @@ const AiChatbot = ({ onClose }) => {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: "Hi! I'm your smart note assistant. I can help you create notes, update existing ones, pin important notes, or answer questions about your notes. What would you like to do?",
+      content: "Hi! I'm your smart note assistant. I can help you:\n\n📝 Create and update notes\n📌 Pin important notes\n🗑️ Delete notes (with confirmation)\n🔍 Search and filter notes\n📊 Provide summaries and analytics\n\nWhat would you like to do?",
       timestamp: new Date()
     }
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const [conversationHistory, setConversationHistory] = useState([]);
+  const [pendingConfirmation, setPendingConfirmation] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   
-  const { fetchNotes, fetchTags } = useNoteStore();
+  const { fetchNotes, fetchTags, deleteNote } = useNoteStore();
   const token = useAuthStore((state) => state.token);
 
-  // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -31,7 +31,6 @@ const AiChatbot = ({ onClose }) => {
     scrollToBottom();
   }, [messages]);
 
-  // Focus input on mount
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
@@ -43,6 +42,18 @@ const AiChatbot = ({ onClose }) => {
     const userMessage = input.trim();
     setInput('');
 
+    // Check if this is a confirmation response
+    const isConfirmation = pendingConfirmation && 
+      (userMessage.toLowerCase().includes('yes') || 
+       userMessage.toLowerCase().includes('confirm') ||
+       userMessage.toLowerCase().includes('go ahead') ||
+       userMessage.toLowerCase().includes('delete them'));
+
+    const isCancellation = pendingConfirmation && 
+      (userMessage.toLowerCase().includes('no') ||
+       userMessage.toLowerCase().includes('cancel') ||
+       userMessage.toLowerCase().includes('nevermind'));
+
     // Add user message to UI
     const newUserMessage = {
       role: 'user',
@@ -50,6 +61,61 @@ const AiChatbot = ({ onClose }) => {
       timestamp: new Date()
     };
     setMessages(prev => [...prev, newUserMessage]);
+
+    // Handle confirmation/cancellation
+    if (pendingConfirmation) {
+      if (isCancellation) {
+        const cancelMessage = {
+          role: 'assistant',
+          content: "Operation cancelled. Your notes are safe! 👍",
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, cancelMessage]);
+        setPendingConfirmation(null);
+        return;
+      }
+
+      if (isConfirmation) {
+        setIsLoading(true);
+        try {
+          // Execute the pending deletion
+          const { operation, noteIds } = pendingConfirmation;
+          
+          if (operation === 'DELETE_MULTIPLE') {
+            // Delete all notes in the list
+            for (const noteId of noteIds) {
+              await deleteNote(noteId);
+            }
+            
+            const successMessage = {
+              role: 'assistant',
+              content: `✅ Successfully deleted ${noteIds.length} note(s). Your notes have been updated.`,
+              timestamp: new Date()
+            };
+            setMessages(prev => [...prev, successMessage]);
+            
+            await fetchNotes();
+            await fetchTags();
+            toast.success(`${noteIds.length} notes deleted`);
+          }
+          
+          setPendingConfirmation(null);
+        } catch (error) {
+          console.error('Error executing confirmed deletion:', error);
+          const errorMessage = {
+            role: 'assistant',
+            content: "Sorry, I encountered an error while deleting the notes. Please try again.",
+            timestamp: new Date(),
+            isError: true
+          };
+          setMessages(prev => [...prev, errorMessage]);
+          toast.error('Failed to delete notes');
+        } finally {
+          setIsLoading(false);
+        }
+        return;
+      }
+    }
 
     setIsLoading(true);
 
@@ -66,16 +132,56 @@ const AiChatbot = ({ onClose }) => {
         }
       );
 
-      const { message: aiMessage, action, actionResult, conversationContext } = response.data;
+      const { message: aiMessage, action, actionResult, parameters, conversationContext } = response.data;
 
-      // Add AI response to UI
-      const newAiMessage = {
-        role: 'assistant',
-        content: aiMessage,
-        action: action,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, newAiMessage]);
+      // Handle REQUEST_CONFIRMATION action
+      if (action === 'REQUEST_CONFIRMATION') {
+        setPendingConfirmation({
+          operation: parameters.operation,
+          noteIds: parameters.noteIds,
+          details: parameters.details
+        });
+        
+        const confirmMessage = {
+          role: 'assistant',
+          content: aiMessage,
+          action: action,
+          timestamp: new Date(),
+          needsConfirmation: true
+        };
+        setMessages(prev => [...prev, confirmMessage]);
+      } else {
+        // Add AI response to UI
+        const newAiMessage = {
+          role: 'assistant',
+          content: aiMessage,
+          action: action,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, newAiMessage]);
+
+        // If an action was performed, refresh the notes
+        if (action && action !== 'ANSWER_QUESTION' && action !== 'SEARCH_NOTES' && action !== 'SUMMARIZE_NOTES') {
+          await fetchNotes();
+          await fetchTags();
+          
+          // Show success toast based on action
+          switch (action) {
+            case 'CREATE_NOTE':
+              toast.success('Note created!');
+              break;
+            case 'UPDATE_NOTE':
+              if (actionResult) toast.success('Note updated!');
+              break;
+            case 'PIN_NOTE':
+              if (actionResult) toast.success('Note pinned/unpinned!');
+              break;
+            case 'DELETE_NOTE':
+              if (actionResult) toast.success('Note deleted!');
+              break;
+          }
+        }
+      }
 
       // Update conversation history for context
       setConversationHistory(prev => [
@@ -83,25 +189,6 @@ const AiChatbot = ({ onClose }) => {
         { role: 'user', content: userMessage },
         conversationContext
       ]);
-
-      // If an action was performed, refresh the notes
-      if (action && action !== 'ANSWER_QUESTION') {
-        await fetchNotes();
-        await fetchTags();
-        
-        // Show success toast based on action
-        switch (action) {
-          case 'CREATE_NOTE':
-            toast.success('Note created!');
-            break;
-          case 'UPDATE_NOTE':
-            if (actionResult) toast.success('Note updated!');
-            break;
-          case 'PIN_NOTE':
-            if (actionResult) toast.success('Note pinned/unpinned!');
-            break;
-        }
-      }
 
     } catch (error) {
       console.error('Error with AI chat:', error);
@@ -145,7 +232,9 @@ const AiChatbot = ({ onClose }) => {
           </div>
           <div>
             <h3 className="font-semibold text-slate-800 dark:text-slate-100">AI Note Assistant</h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400">Powered by GPT-4</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              {pendingConfirmation ? '⚠️ Waiting for confirmation...' : 'Powered by Gemini AI'}
+            </p>
           </div>
         </div>
         <button 
@@ -169,10 +258,14 @@ const AiChatbot = ({ onClose }) => {
                 ? 'bg-orange-600' 
                 : msg.isError
                 ? 'bg-red-500'
+                : msg.needsConfirmation
+                ? 'bg-yellow-500'
                 : 'bg-slate-200 dark:bg-slate-700'
             }`}>
               {msg.role === 'user' ? (
                 <User className="w-4 h-4 text-white" />
+              ) : msg.needsConfirmation ? (
+                <AlertTriangle className="w-4 h-4 text-white" />
               ) : (
                 <Bot className={`w-4 h-4 ${msg.isError ? 'text-white' : 'text-slate-600 dark:text-slate-300'}`} />
               )}
@@ -186,14 +279,16 @@ const AiChatbot = ({ onClose }) => {
                     ? 'bg-orange-600 text-white rounded-tr-sm'
                     : msg.isError
                     ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-tl-sm'
+                    : msg.needsConfirmation
+                    ? 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-900 dark:text-yellow-200 border-2 border-yellow-400 dark:border-yellow-600 rounded-tl-sm'
                     : 'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-100 rounded-tl-sm'
                 }`}
               >
                 <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
-                {msg.action && msg.action !== 'ANSWER_QUESTION' && (
+                {msg.action && msg.action !== 'ANSWER_QUESTION' && msg.action !== 'REQUEST_CONFIRMATION' && (
                   <div className="mt-2 pt-2 border-t border-slate-300 dark:border-slate-600">
                     <span className="text-xs opacity-75">
-                      Action: {msg.action.replace('_', ' ')}
+                      Action: {msg.action.replace(/_/g, ' ')}
                     </span>
                   </div>
                 )}
@@ -226,13 +321,24 @@ const AiChatbot = ({ onClose }) => {
 
       {/* Input Form */}
       <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+        {pendingConfirmation && (
+          <div className="mb-3 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-400 dark:border-yellow-600 rounded-lg">
+            <p className="text-xs text-yellow-900 dark:text-yellow-200 font-medium">
+              ⚠️ Confirmation required. Type "yes" to proceed or "no" to cancel.
+            </p>
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="relative">
           <textarea
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask me anything about your notes..."
+            placeholder={
+              pendingConfirmation 
+                ? "Type 'yes' to confirm or 'no' to cancel..." 
+                : "Ask me anything about your notes..."
+            }
             disabled={isLoading}
             rows={1}
             className="w-full pl-4 pr-12 py-3 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-orange-600 focus:ring-2 focus:ring-orange-600/20 caret-orange-600 disabled:opacity-50 resize-none"
@@ -255,7 +361,9 @@ const AiChatbot = ({ onClose }) => {
           </button>
         </form>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-          Press Enter to send, Shift+Enter for new line
+          {pendingConfirmation 
+            ? "Confirm or cancel the pending operation"
+            : "Press Enter to send, Shift+Enter for new line"}
         </p>
       </div>
     </div>

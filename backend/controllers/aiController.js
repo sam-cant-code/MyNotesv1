@@ -4,6 +4,7 @@ import {
   createNoteForUser,
   updateNoteById,
   togglePinNote,
+  deleteNoteById,
 } from "../models/noteModel.js";
 
 // Initialize Gemini AI
@@ -14,7 +15,7 @@ const formatNotesForContext = (notes) => {
   return notes.map(note => ({
     id: note.id,
     title: note.title,
-    content: note.content?.replace(/<[^>]*>/g, ' ').substring(0, 500), // Strip HTML and limit length
+    content: note.content?.replace(/<[^>]*>/g, ' ').substring(0, 500),
     tags: note.tags || [],
     pinned: note.pinned,
     created_at: note.created_at,
@@ -35,7 +36,11 @@ CAPABILITIES:
 1. CREATE_NOTE: Create a new note with title, content, and optional tags
 2. UPDATE_NOTE: Update an existing note by ID
 3. PIN_NOTE: Pin or unpin a note by ID
-4. ANSWER_QUESTION: Answer questions about the user's notes
+4. DELETE_NOTE: Delete a note by ID (requires confirmation for bulk operations)
+5. SEARCH_NOTES: Search and filter notes by content, tags, or date
+6. SUMMARIZE_NOTES: Provide summaries or analytics about notes
+7. BULK_OPERATIONS: Perform operations on multiple notes (requires confirmation)
+8. ANSWER_QUESTION: Answer questions about the user's notes
 
 When the user asks you to perform an action, respond with a JSON object in this EXACT format:
 
@@ -71,6 +76,47 @@ For pinning a note:
   "message": "I've pinned/unpinned your note"
 }
 
+For deleting a note (SINGLE):
+{
+  "action": "DELETE_NOTE",
+  "parameters": {
+    "noteId": 123
+  },
+  "message": "I've deleted the note titled 'X'"
+}
+
+For requesting confirmation (BULK DELETE or DANGEROUS):
+{
+  "action": "REQUEST_CONFIRMATION",
+  "parameters": {
+    "operation": "DELETE_MULTIPLE",
+    "noteIds": [1, 2, 3],
+    "details": "3 notes matching 'work'"
+  },
+  "message": "⚠️ Are you sure you want to delete 3 notes matching 'work'? This action cannot be undone. Please confirm by saying 'yes, delete them' or 'confirm deletion'."
+}
+
+For searching notes:
+{
+  "action": "SEARCH_NOTES",
+  "parameters": {
+    "query": "search term",
+    "tags": ["tag1"],
+    "dateRange": "last_week"
+  },
+  "message": "I found 5 notes matching your search..."
+}
+
+For summarizing notes:
+{
+  "action": "SUMMARIZE_NOTES",
+  "parameters": {
+    "type": "overview|by_tag|recent",
+    "count": 10
+  },
+  "message": "Here's a summary of your notes..."
+}
+
 For answering questions (NO action needed):
 {
   "action": "ANSWER_QUESTION",
@@ -82,11 +128,38 @@ IMPORTANT RULES:
 - When creating notes with lists, use HTML: <ul><li>item</li></ul> or <ol><li>item</li></ol>
 - When the user asks about their notes, search through the notes provided above
 - Be conversational but concise in your messages
-- If you need to reference a note, use its ID
+- If you need to reference a note, use its ID and title
 - When updating or pinning, make sure the note ID exists in the user's notes
 - If a note doesn't exist, tell the user in your message
 - For questions, analyze all the user's notes and provide helpful summaries
-- NEVER include markdown code blocks like \`\`\`json in your response`;
+- NEVER include markdown code blocks like \`\`\`json in your response
+
+DELETION SAFETY RULES:
+- ALWAYS require confirmation for:
+  * Deleting ALL notes
+  * Deleting MULTIPLE notes (2 or more)
+  * Deleting notes by tag/category
+  * Any ambiguous delete request
+- Use REQUEST_CONFIRMATION action for these cases
+- Only proceed with DELETE_NOTE for single, specific note deletions
+- Be extra cautious with phrases like "delete everything", "remove all", "clear all notes"
+- If user confirms (says "yes", "confirm", "go ahead", etc.), then execute the deletion
+
+SEARCH & FILTER CAPABILITIES:
+- Search by keywords in title or content
+- Filter by tags
+- Filter by date (today, this week, last month, etc.)
+- Find pinned notes
+- Find recently updated notes
+- Combine multiple filters
+
+SUMMARY CAPABILITIES:
+- Count notes by tag
+- List most recent notes
+- Identify most/least updated notes
+- Show pinned notes
+- Provide overview of all tags
+- Show note creation trends`;
 };
 
 export const chatWithAI = async (req, res) => {
@@ -189,12 +262,115 @@ export const chatWithAI = async (req, res) => {
         break;
       }
 
+      case 'DELETE_NOTE': {
+        const { noteId } = parsedResponse.parameters;
+        actionResult = await deleteNoteById(noteId, userId);
+        if (!actionResult) {
+          parsedResponse.message = "I couldn't find that note to delete.";
+        }
+        break;
+      }
+
+      case 'SEARCH_NOTES': {
+        const { query, tags, dateRange } = parsedResponse.parameters;
+        let filteredNotes = notes;
+
+        // Filter by query
+        if (query) {
+          const searchTerm = query.toLowerCase();
+          filteredNotes = filteredNotes.filter(note => 
+            note.title.toLowerCase().includes(searchTerm) ||
+            (note.content && note.content.toLowerCase().includes(searchTerm))
+          );
+        }
+
+        // Filter by tags
+        if (tags && tags.length > 0) {
+          filteredNotes = filteredNotes.filter(note =>
+            note.tags && tags.some(tag => note.tags.includes(tag))
+          );
+        }
+
+        // Filter by date range
+        if (dateRange) {
+          const now = new Date();
+          const filterDate = new Date();
+          
+          switch(dateRange) {
+            case 'today':
+              filterDate.setHours(0, 0, 0, 0);
+              break;
+            case 'this_week':
+              filterDate.setDate(now.getDate() - 7);
+              break;
+            case 'last_month':
+              filterDate.setMonth(now.getMonth() - 1);
+              break;
+          }
+          
+          filteredNotes = filteredNotes.filter(note =>
+            new Date(note.updated_at) >= filterDate
+          );
+        }
+
+        actionResult = filteredNotes;
+        parsedResponse.message += `\n\nFound ${filteredNotes.length} note(s):\n` + 
+          filteredNotes.slice(0, 5).map(note => `- ${note.title}`).join('\n') +
+          (filteredNotes.length > 5 ? `\n... and ${filteredNotes.length - 5} more` : '');
+        break;
+      }
+
+      case 'SUMMARIZE_NOTES': {
+        const { type, count } = parsedResponse.parameters;
+        let summary = '';
+
+        switch(type) {
+          case 'overview':
+            const totalNotes = notes.length;
+            const pinnedCount = notes.filter(n => n.pinned).length;
+            const allTags = [...new Set(notes.flatMap(n => n.tags || []))];
+            summary = `📊 Notes Overview:\n- Total notes: ${totalNotes}\n- Pinned notes: ${pinnedCount}\n- Unique tags: ${allTags.length}\n- Tags: ${allTags.join(', ') || 'None'}`;
+            break;
+
+          case 'by_tag':
+            const tagCounts = {};
+            notes.forEach(note => {
+              (note.tags || []).forEach(tag => {
+                tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+              });
+            });
+            summary = '🏷️ Notes by Tag:\n' + 
+              Object.entries(tagCounts)
+                .sort((a, b) => b[1] - a[1])
+                .map(([tag, count]) => `- ${tag}: ${count} note(s)`)
+                .join('\n');
+            break;
+
+          case 'recent':
+            const recentNotes = notes
+              .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+              .slice(0, count || 5);
+            summary = `🕐 Recent Notes:\n` +
+              recentNotes.map(note => 
+                `- ${note.title} (updated ${new Date(note.updated_at).toLocaleDateString()})`
+              ).join('\n');
+            break;
+        }
+
+        parsedResponse.message += '\n\n' + summary;
+        break;
+      }
+
+      case 'REQUEST_CONFIRMATION':
+        // Just return the confirmation request
+        break;
+
       case 'ANSWER_QUESTION':
         // No action needed, just return the message
         break;
 
       default:
-        parsedResponse.message = "I'm not sure how to help with that. I can create notes, update notes, pin notes, or answer questions about your notes.";
+        parsedResponse.message = "I'm not sure how to help with that. I can create notes, update notes, pin notes, delete notes, search notes, or answer questions about your notes.";
     }
 
     // Return response
@@ -202,6 +378,7 @@ export const chatWithAI = async (req, res) => {
       message: parsedResponse.message,
       action: parsedResponse.action,
       actionResult: actionResult,
+      parameters: parsedResponse.parameters,
       conversationContext: {
         role: "assistant",
         content: parsedResponse.message
