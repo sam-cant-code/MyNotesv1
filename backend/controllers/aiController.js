@@ -103,7 +103,7 @@ export const chatWithAI = async (req, res) => {
 
     // Get the Gemini model
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash",
+      model: "gemini-flash-latest",
       generationConfig: {
         temperature: 0.7,
         topK: 40,

@@ -19,6 +19,7 @@ import {
 import authRoutes from "./routes/authRoute.js";
 import protectedRoutes from "./routes/protectedRoute.js";
 import noteRoutes from "./routes/noteRoute.js";
+import aiRoutes from "./routes/aiRoute.js"; // <-- FIX 1: IMPORT AI ROUTE
 
 // --- Initial Setup ---
 dotenv.config();
@@ -41,6 +42,7 @@ app.use(passport.initialize());
 app.use("/auth", authRoutes);
 app.use("/api", protectedRoutes);
 app.use("/api/notes", noteRoutes);
+app.use("/api/ai", aiRoutes); // <-- FIX 2: MOUNT AI ROUTE
 
 
 
