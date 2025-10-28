@@ -1,7 +1,4 @@
-// ============================================================
-// FILE 1: backend/controllers/noteController.js
-// COPY THIS ENTIRE FILE - REPLACE YOUR EXISTING FILE
-// ============================================================
+
 
 import {
   findNotesByUserId,

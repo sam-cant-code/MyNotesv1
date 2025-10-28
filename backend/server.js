@@ -1,6 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
-import cors from "cors"; // It's good practice to have cors
+import cors from "cors"; 
 import passport from "passport";
 
 // --- Local Imports ---
@@ -9,7 +9,6 @@ import "./config/passport.js"; // This ensures passport config is loaded
 
 // --- Model Imports for Table Creation ---
 import { ensureUsersTableExists } from "./models/userModel.js";
-// UPDATED IMPORT
 import {
   ensureNotesTableExists,
   ensureTagsTableExists,
@@ -26,10 +25,6 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// ====================================================================
-// --- CRITICAL: Middleware Setup ---
-// These MUST come before your routes are defined.
-// ====================================================================
 
 // 1. Enable CORS
 app.use(cors());
@@ -48,10 +43,7 @@ app.use("/api", protectedRoutes);
 app.use("/api/notes", noteRoutes);
 
 
-// ====================================================================
-// --- Server Startup Function ---
-// This function controls the order of operations.
-// ====================================================================
+
 const startServer = async () => {
   try {
     // Step 1: Connect to the database
