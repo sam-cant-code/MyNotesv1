@@ -34,17 +34,18 @@ ${JSON.stringify(notesContext, null, 2)}
 
 CAPABILITIES:
 1. CREATE_NOTE: Create a new note with title, content, and optional tags
-2. UPDATE_NOTE: Update an existing note by ID
-3. PIN_NOTE: Pin or unpin a note by ID
-4. DELETE_NOTE: Delete a note by ID (requires confirmation for bulk operations)
-5. SEARCH_NOTES: Search and filter notes by content, tags, or date
-6. SUMMARIZE_NOTES: Provide summaries or analytics about notes
-7. BULK_OPERATIONS: Perform operations on multiple notes (requires confirmation)
-8. ANSWER_QUESTION: Answer questions about the user's notes
+2. CREATE_MULTIPLE_NOTES: Create multiple notes at once (for batch operations)
+3. UPDATE_NOTE: Update an existing note by ID
+4. PIN_NOTE: Pin or unpin a note by ID
+5. DELETE_NOTE: Delete a note by ID (requires confirmation for bulk operations)
+6. SEARCH_NOTES: Search and filter notes by content, tags, or date
+7. SUMMARIZE_NOTES: Provide summaries or analytics about notes
+8. BULK_OPERATIONS: Perform operations on multiple notes (requires confirmation)
+9. ANSWER_QUESTION: Answer questions about the user's notes
 
 When the user asks you to perform an action, respond with a JSON object in this EXACT format:
 
-For creating a note:
+For creating a single note:
 {
   "action": "CREATE_NOTE",
   "parameters": {
@@ -53,6 +54,26 @@ For creating a note:
     "tags": ["tag1", "tag2"]
   },
   "message": "I've created a new note titled 'Note title here'"
+}
+
+For creating multiple notes:
+{
+  "action": "CREATE_MULTIPLE_NOTES",
+  "parameters": {
+    "notes": [
+      {
+        "title": "First Note",
+        "content": "Content here",
+        "tags": ["tag1"]
+      },
+      {
+        "title": "Second Note",
+        "content": "More content",
+        "tags": ["tag2"]
+      }
+    ]
+  },
+  "message": "I've created 2 new notes for you!"
 }
 
 For updating a note:
@@ -133,6 +154,9 @@ IMPORTANT RULES:
 - If a note doesn't exist, tell the user in your message
 - For questions, analyze all the user's notes and provide helpful summaries
 - NEVER include markdown code blocks like \`\`\`json in your response
+- When asked to create multiple notes, use CREATE_MULTIPLE_NOTES action
+- For requests like "create 10 random notes", generate diverse, realistic example notes
+- When creating multiple notes, vary the titles, content, and tags to make them useful examples
 
 DELETION SAFETY RULES:
 - ALWAYS require confirmation for:
@@ -237,6 +261,22 @@ export const chatWithAI = async (req, res) => {
           content: content || '',
           tags: tags || []
         });
+        break;
+      }
+
+      case 'CREATE_MULTIPLE_NOTES': {
+        const { notes } = parsedResponse.parameters;
+        actionResult = [];
+        
+        for (const noteData of notes) {
+          const createdNote = await createNoteForUser({
+            userId,
+            title: noteData.title || 'Untitled Note',
+            content: noteData.content || '',
+            tags: noteData.tags || []
+          });
+          actionResult.push(createdNote);
+        }
         break;
       }
 

@@ -2,14 +2,14 @@
 export default {
   content: [
     "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}", // Scans your source files for Tailwind classes
+    "./src/**/*.{js,ts,jsx,tsx}", 
   ],
   darkMode: 'class',
   theme: {
     extend: {},
   },
-  // --- ADD THIS PLUGINS SECTION ---
   plugins: [
     require('@tailwindcss/typography'),
+    require('tailwind-scrollbar'), // <-- ADD THIS LINE
   ],
 }

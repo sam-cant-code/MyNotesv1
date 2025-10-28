@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Pin, PenTool, RefreshCw } from 'lucide-react';
+import { Sparkles, Tag, Search, RefreshCw } from 'lucide-react';
 
 const Login = () => {
   // --- Animation State ---
@@ -16,7 +16,7 @@ const Login = () => {
   // --- Typing Animation Logic ---
   const [typedText, setTypedText] = useState('');
   const staticText = 'Your Notes, ';
-  const animatedText = 'Everywhere.';
+  const animatedText = 'Smarter.'; // <-- UPDATED ANIMATED TEXT
 
   useEffect(() => {
     let index = 0;
@@ -42,24 +42,24 @@ const Login = () => {
 
   const features = [
     {
-      icon: <FileText className="w-7 h-7" />,
-      title: 'Create Notes Instantly',
-      description: 'Quickly jot down your thoughts, ideas, and reminders with ease.',
+      icon: <Sparkles className="w-7 h-7" />,
+      title: 'AI-Powered Assistant',
+      description: 'Chat to create, update, and find insights from your notes.',
     },
     {
-      icon: <Pin className="w-7 h-7" />,
-      title: 'Organize & Pin',
-      description: 'Pin important notes and keep your workspace organized.',
+      icon: <Tag className="w-7 h-7" />,
+      title: 'Organize with Tags',
+      description: 'Add custom tags to your notes and filter by them instantly.',
     },
     {
-      icon: <PenTool className="w-7 h-7" />,
-      title: 'Edit & Delete',
-      description: 'Easily update or remove notes as your ideas evolve.',
+      icon: <Search className="w-7 h-7" />,
+      title: 'Instant Search & Pinning',
+      description: 'Find any note with full-text search and pin your favorites.',
     },
     {
       icon: <RefreshCw className="w-7 h-7" />,
-      title: 'Sync Across Devices',
-      description: 'Access your notes anywhere—securely in the cloud.',
+      title: 'Rich Text & Sync',
+      description: 'Edit with lists and formatting, synced securely to the cloud.',
     },
   ];
 
@@ -80,9 +80,10 @@ const Login = () => {
           <span>{typedText}</span>
           <span className="ml-1 text-orange-600 animate-pulse">|</span>
         </h1>
+        {/* --- UPDATED DESCRIPTION --- */}
         <p className="max-w-xl mx-auto mt-6 text-lg text-slate-600 dark:text-slate-400">
-          The fastest way to capture, organize, and access your notes anywhere. Fast, simple,
-          and always in sync.
+          Capture your thoughts and let our AI assistant organize, summarize,
+          and find them for you. Your intelligent, synced notebook.
         </p>
         <button
           onClick={handleLogin}

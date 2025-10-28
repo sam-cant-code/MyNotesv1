@@ -123,6 +123,7 @@ const Dashboard = () => {
 
       {!isCreateFormVisible && !isAiChatbotVisible && (
         <>
+          {/* --- AI Button (Secondary) --- */}
           <button
             onClick={() => setAiChatbotVisible(true)}
             className="fixed bottom-28 right-8 w-14 h-14 bg-slate-100 dark:bg-slate-700 rounded-full shadow-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-all z-50 focus:outline-none focus:ring-2 focus:ring-orange-600 flex items-center justify-center group"
@@ -131,6 +132,7 @@ const Dashboard = () => {
             <Sparkles className="w-6 h-6 text-orange-600 transition-transform group-hover:scale-110" />
           </button>
           
+          {/* --- Add Note Button (Primary) --- */}
           <FloatingActionButton onClick={handleToggleCreateForm} />
         </>
       )}
