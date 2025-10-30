@@ -8,18 +8,25 @@ const getToken = () => useAuthStore.getState().token;
 
 const useNoteStore = create((set, get) => ({
   notes: [],
-  allTags: [], // --- NEW STATE for tags ---
+  allTags: [],
   error: null,
   loading: false,
+  aiFilteredNoteIds: null, // <-- NEW STATE: null means no AI filter, array means filter active
 
-  // --- NEW ACTION: fetchTags ---
+  // Action to set or clear the AI filter
+  setAiFilter: (noteIds) => { // <-- NEW ACTION
+    set({ aiFilteredNoteIds: noteIds });
+    // Optionally clear manual filters when AI filter is set/cleared
+    // get().setSelectedTag(''); // Example: Uncomment if you want this behavior
+    // get().setSearchQuery(''); // Example: Uncomment if you want this behavior
+  },
+
   fetchTags: async () => {
     set({ loading: true, error: null });
     const token = getToken();
     if (!token) {
       return set({ loading: false, error: 'Authentication token not found.' });
     }
-
     try {
       const response = await axios.get('http://localhost:4000/api/notes/tags', {
         headers: { Authorization: `Bearer ${token}` },
@@ -32,14 +39,12 @@ const useNoteStore = create((set, get) => ({
     }
   },
 
-  // Action to fetch all notes for the logged-in user
   fetchNotes: async () => {
     set({ loading: true, error: null });
     const token = getToken();
     if (!token) {
       return set({ loading: false, error: 'Authentication token not found.' });
     }
-
     try {
       const response = await axios.get('http://localhost:4000/api/notes', {
         headers: { Authorization: `Bearer ${token}` },
@@ -52,30 +57,25 @@ const useNoteStore = create((set, get) => ({
     }
   },
 
-  // Action to add a new note
-  // --- UPDATED: Now accepts 'tags' ---
   addNote: async (title, content, tags = []) => {
     set({ loading: true, error: null });
     const token = getToken();
     if (!token) {
       return set({ loading: false, error: 'Authentication token not found.' });
     }
-
     const noteTitle = title.trim() === '' ? 'Untitled Note' : title;
-
     try {
       const response = await axios.post(
         'http://localhost:4000/api/notes',
-        { title: noteTitle, content, tags }, // --- Send tags ---
+        { title: noteTitle, content, tags },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       set((state) => ({
         notes: [response.data, ...state.notes],
         loading: false,
-        // --- Add new tags to allTags list if they don't exist ---
-        allTags: [
-          ...new Set([...state.allTags, ...tags]),
-        ].sort(),
+        allTags: [...new Set([...state.allTags, ...tags])].sort(),
+        // Clear AI filter when adding a note? Optional.
+        // aiFilteredNoteIds: null,
       }));
       toast.success('Note created successfully!');
     } catch (err) {
@@ -85,21 +85,17 @@ const useNoteStore = create((set, get) => ({
     }
   },
 
-  // Action to update a note
-  // --- UPDATED: Now accepts 'tags' ---
   updateNote: async (noteId, title, content, tags = []) => {
     set({ loading: true, error: null });
     const token = getToken();
     if (!token) {
       return set({ loading: false, error: 'Authentication token not found.' });
     }
-
     const noteTitle = title.trim() === '' ? 'Untitled Note' : title;
-
     try {
       const response = await axios.put(
         `http://localhost:4000/api/notes/${noteId}`,
-        { title: noteTitle, content, tags }, // --- Send tags ---
+        { title: noteTitle, content, tags },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       set((state) => ({
@@ -107,10 +103,7 @@ const useNoteStore = create((set, get) => ({
           note.id === noteId ? response.data : note
         ),
         loading: false,
-        // --- Add new tags to allTags list if they don't exist ---
-        allTags: [
-          ...new Set([...state.allTags, ...tags]),
-        ].sort(),
+        allTags: [...new Set([...state.allTags, ...tags])].sort(),
       }));
       toast.success('Note updated successfully!');
     } catch (err) {
@@ -120,20 +113,20 @@ const useNoteStore = create((set, get) => ({
     }
   },
 
-  // Action to delete a note
   deleteNote: async (noteId) => {
     set({ loading: true, error: null });
     const token = getToken();
     if (!token) {
       return set({ loading: false, error: 'Authentication token not found.' });
     }
-
     try {
       await axios.delete(`http://localhost:4000/api/notes/${noteId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       set((state) => ({
         notes: state.notes.filter((note) => note.id !== noteId),
+        // If the deleted note was part of the AI filter, remove it
+        aiFilteredNoteIds: state.aiFilteredNoteIds?.filter(id => id !== noteId) || null,
         loading: false,
       }));
       toast.success('Note deleted successfully!');
@@ -144,13 +137,11 @@ const useNoteStore = create((set, get) => ({
     }
   },
 
-  // Action to toggle pin status
   togglePin: async (noteId) => {
     const token = getToken();
     if (!token) {
       return set({ error: 'Authentication token not found.' });
     }
-
     try {
       const response = await axios.patch(
         `http://localhost:4000/api/notes/${noteId}/pin`,
