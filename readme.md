@@ -6,9 +6,9 @@
 
 ## 🎬 Demo
 
-**Login Page Walkthrough:**
+**Login Page UI & Animations:**
 
-![Login Page Demo](assets/login%20page.gif)
+![Login Page UI Animations](assets/login%20page.gif)
 
 **Watch the Full Video Walkthrough:**
 
