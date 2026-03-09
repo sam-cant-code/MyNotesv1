@@ -6,7 +6,11 @@
 
 ## 🎬 Demo
 
-**Watch the Video Walkthrough:**
+**Login Page Walkthrough:**
+
+![Login Page Demo](assets/login%20page.gif)
+
+**Watch the Full Video Walkthrough:**
 
 [![Project Demo](https://img.youtube.com/vi/YOUR_VIDEO_ID_HERE/maxresdefault.jpg)](https://youtu.be/YOUR_VIDEO_ID_HERE)
 *(Note: Replace `YOUR_VIDEO_ID_HERE` with your actual YouTube video ID, or link directly to a hosted `.mp4` file.)*
