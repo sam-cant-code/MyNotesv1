@@ -3,7 +3,7 @@ import NoteCard from './NoteCard';
 import EmptyNotesMessage from './EmptyNotesMessage';
 
 // --- ADD `selectedTag` TO PROPS ---
-const NotesGrid = ({ notes, notesLoading, onEdit, viewMode, sortBy, searchQuery, selectedTag }) => {
+const NotesGrid = ({ notes, notesLoading, onEdit, viewMode, sortBy, searchQuery, selectedTag, aiFilteredNoteIds }) => {
   if (notesLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -18,38 +18,30 @@ const NotesGrid = ({ notes, notesLoading, onEdit, viewMode, sortBy, searchQuery,
   // --- UPDATED FILTERING LOGIC ---
   let filteredNotes = notes;
 
-  // 1. Filter by search query
-  if (searchQuery && searchQuery.trim() !== '') {
-    const query = searchQuery.toLowerCase();
-    filteredNotes = filteredNotes.filter(note => 
-      note.title.toLowerCase().includes(query) || 
-      (note.content && note.content.toLowerCase().includes(query))
-    );
-  }
+  // 1. Check for AI Filter FIRST
+  if (aiFilteredNoteIds !== null) {
+    const aiFilterSet = new Set(aiFilteredNoteIds);
+    filteredNotes = filteredNotes.filter(note => aiFilterSet.has(note.id));
+  } 
+  // 2. If no AI filter, apply manual filters
+  else {
+    // Filter by search query
+    if (searchQuery && searchQuery.trim() !== '') {
+      const query = searchQuery.toLowerCase();
+      filteredNotes = filteredNotes.filter(note => 
+        note.title.toLowerCase().includes(query) || 
+        (note.content && note.content.toLowerCase().includes(query))
+      );
+    }
 
-  // 2. Filter by selected tag
-  if (selectedTag) {
-    filteredNotes = filteredNotes.filter(note => 
-      note.tags && note.tags.includes(selectedTag)
-    );
+    // Filter by selected tag
+    if (selectedTag) {
+      filteredNotes = filteredNotes.filter(note => 
+        note.tags && note.tags.includes(selectedTag)
+      );
+    }
   }
   // --- END UPDATED FILTERING LOGIC ---
-
-
-  // --- UPDATED EMPTY MESSAGE ---
-  if (filteredNotes.length === 0 && (searchQuery || selectedTag)) {
-    return (
-      <div className="text-center py-10">
-        <p className="text-slate-500 dark:text-slate-400">No notes found matching your filters.</p>
-        <p className="text-slate-400 dark:text-slate-500 text-sm mt-2">Try a different search or tag filter</p>
-      </div>
-    );
-  }
-
-  if (filteredNotes.length === 0) {
-    return <EmptyNotesMessage />;
-  }
-  // --- END UPDATED EMPTY MESSAGE ---
 
 
   // Sort notes
@@ -64,6 +56,28 @@ const NotesGrid = ({ notes, notesLoading, onEdit, viewMode, sortBy, searchQuery,
     });
   }
   // Default is newest (already sorted from backend with pinned first)
+
+  // --- UPDATED EMPTY MESSAGE LOGIC ---
+  if (filteredNotes.length === 0) {
+    if (aiFilteredNoteIds !== null) {
+      return (
+        <div className="text-center py-10">
+          <p className="text-slate-500 dark:text-slate-400">The AI filter returned no notes.</p>
+          <p className="text-slate-400 dark:text-slate-500 text-sm mt-2">Try a different prompt or clear the filter.</p>
+        </div>
+      );
+    }
+    if (searchQuery || selectedTag) {
+      return (
+        <div className="text-center py-10">
+          <p className="text-slate-500 dark:text-slate-400">No notes found matching your filters.</p>
+          <p className="text-slate-400 dark:text-slate-500 text-sm mt-2">Try a different search or tag filter</p>
+        </div>
+      );
+    }
+    return <EmptyNotesMessage />;
+  }
+  // --- END UPDATED EMPTY MESSAGE ---
 
   // Separate pinned and unpinned notes
   const pinnedNotes = sortedNotes.filter(note => note.pinned);

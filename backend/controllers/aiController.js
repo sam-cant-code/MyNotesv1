@@ -132,7 +132,8 @@ For searching notes:
   "parameters": {
     "query": "search term",
     "tags": ["tag1"],
-    "dateRange": "last_year|last_month|this_week|today|pinned|none"
+    "dateRange": "last_year|last_month|this_week|today|pinned|none",
+    "specificMonth": "YYYY-MM"
   },
   "message": "I found 5 notes matching your search..."
 }
@@ -188,6 +189,7 @@ SEARCH & FILTER CAPABILITIES:
 - Filter by tags
 - Filter by date range (e.g., "last year", "last month", "this week", "today") - interpret these relative to the current date.
 - Filter for pinned notes (e.g., "show pinned notes")
+- Filter by a specific month using \`specificMonth\` (e.g., "notes from July 2024" -> "2024-07"). If no year is given, assume the current year.
 - Find recently updated notes
 - Combine multiple filters
 
@@ -377,7 +379,7 @@ export const chatWithAI = async (req, res) => {
         break;
       }
       case 'SEARCH_NOTES': {
-        const { query, tags, dateRange } = parsedResponse.parameters;
+        let { query, tags, dateRange, specificMonth } = parsedResponse.parameters;
         let filteredNotes = notes;
 
         // Filter by query (search title and text content)
@@ -394,6 +396,27 @@ export const chatWithAI = async (req, res) => {
           filteredNotes = filteredNotes.filter(note =>
             note.tags && tags.every(tag => note.tags.includes(tag)) // Use 'every' for AND logic if multiple tags given
           );
+        }
+
+        // Filter by specific month (YYYY-MM format)
+        // This filter takes precedence over the relative dateRange
+        if (specificMonth) {
+          dateRange = 'none'; // Disable relative dateRange if specificMonth is used
+          try {
+            const [year, month] = specificMonth.split('-').map(Number);
+            // JavaScript Date month is 0-indexed (0-11)
+            const startDate = new Date(year, month - 1, 1);
+            // Get first day of next month, then subtract 1ms to get end of target month
+            const endDate = new Date(year, month, 1);
+            endDate.setMilliseconds(endDate.getMilliseconds() - 1);
+
+            filteredNotes = filteredNotes.filter(note => {
+              const noteDate = new Date(note.updated_at); // Filter based on updated_at
+              return noteDate >= startDate && noteDate <= endDate;
+            });
+          } catch (monthError) {
+            console.error("Error parsing specificMonth:", monthError);
+          }
         }
 
         // Filter by date range (relative to update time)
@@ -450,7 +473,8 @@ export const chatWithAI = async (req, res) => {
         let resultMessage = `Found ${filteredNotes.length} note(s)`;
         if (query) resultMessage += ` containing "${query}"`;
         if (tags && tags.length > 0) resultMessage += ` tagged with [${tags.join(', ')}]`;
-        if (dateRange && dateRange !== 'none') resultMessage += ` from ${dateRange.replace('_', ' ')}`;
+        if (specificMonth) resultMessage += ` from ${specificMonth}`;
+        else if (dateRange && dateRange !== 'none') resultMessage += ` from ${dateRange.replace('_', ' ')}`;
         resultMessage += '.';
 
         if (filteredNotes.length > 0) {

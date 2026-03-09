@@ -33,7 +33,7 @@ const AiChatbot = ({ onClose }) => {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   
-  const { fetchNotes, fetchTags } = useNoteStore();
+  const { fetchNotes, fetchTags, setAiFilter } = useNoteStore(); // <-- Get setAiFilter action
   const token = useAuthStore((state) => state.token);
 
   // Auto-scroll to bottom
@@ -86,6 +86,7 @@ const AiChatbot = ({ onClose }) => {
         action, 
         actionResult, 
         conversationContext,
+        searchResultIds, // <-- Get the searchResultIds
         requiresConfirmation,
         parameters 
       } = response.data;
@@ -111,6 +112,11 @@ const AiChatbot = ({ onClose }) => {
         { role: 'user', content: userMessage },
         conversationContext
       ]);
+
+      // --- APPLY AI FILTER ---
+      if (action === 'SEARCH_NOTES' && searchResultIds) {
+        setAiFilter(searchResultIds);
+      }
 
       // Refresh notes if action was performed
       if (action && !['ANSWER_QUESTION', 'REQUEST_DELETE_CONFIRMATION', 'SEARCH_NOTES', 'SUMMARIZE_NOTES'].includes(action)) {
