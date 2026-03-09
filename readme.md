@@ -1,6 +1,6 @@
-# Project Name
+# MyNotesv1
 
-> A brief, punchy description of what this project does and the problem it solves.
+> A smart, AI-integrated note-taking application featuring a built-in AI assistant powered by Google's Gemini.
 
 ---
 
@@ -13,31 +13,27 @@
 
 ## 📸 Screenshots
 
-| Feature 1 | Feature 2 |
+| Dashboard | AI Chat Assistant |
 | :---: | :---: |
-| <img src="https://via.placeholder.com/500x300?text=Screenshot+1" alt="Screenshot 1" width="500"/> | <img src="https://via.placeholder.com/500x300?text=Screenshot+2" alt="Screenshot 2" width="500"/> |
-| *Brief description of the first screenshot.* | *Brief description of the second screenshot.* |
+| <img src="assets/dashboard-screen.png" alt="Dashboard View" width="500"/> | <img src="assets/ai-chat-screen.png" alt="AI Chat View" width="500"/> |
+| *Managing and organizing notes.* | *Interacting with the Gemini-powered AI.* |
+
+*(Note: Create an `assets` folder in your project, drop your screenshots in there, and update the filenames above if needed.)*
 
 ---
 
 ## ✨ Key Features
 
-* **Feature One:** Explain what it does and why it matters.
-* **Feature Two:** Highlight a specific technical achievement or user benefit.
-* **Feature Three:** Mention integrations, performance metrics, or security capabilities.
+* **AI Chat Integration:** Ask questions and get assistance directly within your notes using Google's Gemini AI.
+* **Resilient API Handling:** Implemented exponential backoff and retry logic to ensure stable AI responses even during high server demand.
+* **Note Management:** Create, view, and manage your personal notes efficiently.
 
 ## 🛠️ Tech Stack
 
-* **Frontend:** Technology 1, Technology 2
-* **Backend:** Technology 3, Technology 4
-* **Database/Storage:** Technology 5
-* **Other Tools:** Tool 1, Tool 2
-
-## ⚙️ Architecture
-
-Briefly explain the flow of data or the system architecture. You can also drop an architecture diagram image here if you have one:
-
-![Architecture Diagram](https://via.placeholder.com/800x400?text=Architecture+Diagram)
+* **Backend:** Node.js, Express.js
+* **AI Integration:** Google Generative AI SDK (`gemini-2.5-flash`)
+* **Frontend:** *(Add your frontend tech here, e.g., React, HTML/CSS)*
+* **Database:** *(Add your database here, e.g., MongoDB, PostgreSQL)*
 
 ---
 
@@ -47,42 +43,42 @@ Follow these instructions to set up the project locally.
 
 ### Prerequisites
 
-Ensure you have the following installed:
-* [Dependency 1](link) (e.g., Node.js v18+)
-* [Dependency 2](link) (e.g., Python 3.10+)
+Ensure you have the following installed on your machine:
+* [Node.js](https://nodejs.org/) (v16 or higher recommended)
+* A [Google Gemini API Key](https://aistudio.google.com/app/apikey)
 
 ### Installation
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/yourusername/your-repo-name.git](https://github.com/yourusername/your-repo-name.git)
-    cd your-repo-name
+    git clone [https://github.com/sam-cant-code/MyNotesv1.git](https://github.com/sam-cant-code/MyNotesv1.git)
+    cd MyNotesv1
     ```
 
-2.  **Install dependencies:**
+2.  **Install backend dependencies:**
     ```bash
-    # Command to install dependencies
-    npm install  # or pip install -r requirements.txt
+    cd backend
+    npm install
     ```
 
 3.  **Set up environment variables:**
-    ```bash
-    cp .env.example .env
-    # Add your specific configurations to the .env file
+    Create a `.env` file in your `backend` directory and add your Gemini API key:
+    ```env
+    GEMINI_API_KEY=your_actual_api_key_here
     ```
 
 4.  **Run the application:**
     ```bash
-    # Command to start the dev server
-    npm run dev  # or python app.py
+    # Start the backend server
+    node index.js # or npm start / npm run dev depending on your package.json
     ```
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions, issues, and feature requests are welcome! 
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is open-source and available under the [MIT License](LICENSE).
