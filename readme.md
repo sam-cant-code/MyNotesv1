@@ -4,33 +4,25 @@
 
 ---
 
-## 🎬 Demo Scenarios
+## 🎬 Application Demo
 
-Note Buddy isn't just a chatbot; it is an action-oriented agent that manages your database through natural language.
+Note Buddy isn't just a chatbot; it's an action-oriented agent that manages your database, structures entries, and extracts insights through natural language. 
 
-### 1. Smart Lifestyle Management
-Turn messy thoughts into structured, tagged entries instantly.
-**Prompt:** *"Note Buddy, I'm planning a new project called 'Stealth Mode'. Add: design a logo, find a co-founder, and register the domain. Tag it as work and high priority."*
-![Smart Creation](assets/ai-create.gif)
+Watch the full demonstration below:
 
-### 2. Contextual Retrieval & Executive Summary
-Filter your dashboard and extract key insights without opening a single file.
-**Prompt:** *"Show me my high-priority work tasks and summarize the key phases in my 'Vision 2026' note."*
-![Smart Filter and Summary](assets/ai-filter-summary.gif)
+<video src="assets/MyNotes%20demo.mp4" controls="controls" width="100%" alt="MyNotes AI Demo Video">
+  Your browser does not support the video tag. <a href="assets/MyNotes%20demo.mp4">Click here to watch the demo video.</a>
+</video>
 
-### 3. Agentic Updates & Safety Guardrails
-Modify notes on the fly and perform bulk operations with built-in safety confirmations.
-**Prompt:** *"Add 'Launch Beta' to my Stealth Mode milestones and delete all old archive notes."*
-![Safety and Updates](assets/ai-safety-update.gif)
+*(If the video doesn't play inline, click [here](assets/MyNotes%20demo.mp4) to download/watch it.)*
 
 ---
 
-## 📸 Screenshots
+## 🔐 Secure Access
 
-| Dashboard | Note Buddy Assistant |
-| :---: | :---: |
-| <img src="assets/dashboard-screen.png" alt="Dashboard View" width="500"/> | <img src="assets/ai-chat-screen.png" alt="AI Chat View" width="500"/> |
-| *Managing and organizing lifestyle notes.* | *Interacting with the Neural Assistant.* |
+Seamless and secure Google OAuth 2.0 integration ensures your personal data and notes stay private.
+
+![Login Page Authentication Flow](assets/login%20page.gif)
 
 ---
 
@@ -39,7 +31,7 @@ Modify notes on the fly and perform bulk operations with built-in safety confirm
 * **Neural Assistant (Note Buddy):** An agentic AI that maps natural language directly to SQL database operations.
 * **Intelligent UI Filtering:** Dynamically filters the dashboard view based on AI search intent.
 * **Resilient API Handling:** Implemented exponential backoff and retry logic for stable Gemini AI responses.
-* **Secure Authentication:** Seamless Google OAuth 2.0 integration for personal data security.
+* **Secure Authentication:** Easy Google login for secure, session-based access.
 * **Rich Text Editing:** Full-featured note management using the TipTap editor.
 
 ## 🛠️ Tech Stack
@@ -74,7 +66,7 @@ Modify notes on the fly and perform bulk operations with built-in safety confirm
     ```
 
 3. **Database Setup:**
-    Run the provided SQL scripts or use the seeder for a professional-casual demo:
+    Run the provided SQL scripts or use the seeder to populate the database:
     ```bash
     cd backend
     node seed.js
