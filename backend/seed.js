@@ -12,7 +12,7 @@ dotenv.config();
 const USER_ID_TO_SEED = 1;
 
 // Set to the number of sample notes provided below.
-const NUM_NOTES_TO_CREATE = 4; 
+const NUM_NOTES_TO_CREATE = 8; 
 
 // ====================================================================
 // --- REALISTIC "LIFE" DATA FOR DEMO ---
@@ -20,24 +20,44 @@ const NUM_NOTES_TO_CREATE = 4;
 
 const sampleNotes = [
   {
-    title: '🚀 Startup Project: Vision 2026',
-    content: '<h2>Project Alpha</h2><ul><li>Phase 1: Market Research</li><li>Phase 2: MVP Development</li><li>Phase 3: Beta Testing</li></ul><p>Remember to check <strong>scalability</strong> options.</p>',
-    tags: ['work', 'vision', 'high-priority']
+    title: 'Grocery List',
+    content: '<ul><li>Milk</li><li>Eggs</li><li>Bread</li><li>Bananas</li><li>Coffee beans</li></ul>',
+    tags: ['personal', 'shopping', 'todo']
   },
   {
-    title: '🍱 Meal Prep: Healthy Week',
-    content: '<p>Focus on high-protein, low-carb meals this week.</p><ul><li>Grilled Salmon & Asparagus</li><li>Quinoa Salad with Chickpeas</li><li>Turkey Chili</li></ul>',
-    tags: ['lifestyle', 'health', 'todo']
+    title: 'Dinner Ideas',
+    content: '<p><strong>Quick Meals:</strong></p><ul><li>Spaghetti bolognese</li><li>Chicken tacos</li><li>Vegetable stir fry</li><li>Homemade pizza</li></ul>',
+    tags: ['food', 'ideas', 'personal']
   },
   {
-    title: '🌍 Travel Bucket List: Tokyo/Kyoto',
-    content: '<p>Must visit: <strong>Shibuya Crossing</strong>, <strong>Fushimi Inari Shrine</strong>, and a traditional <strong>Onsen</strong>.</p><p>Budget: $3000 approx.</p>',
-    tags: ['travel', 'lifestyle', 'ideas']
+    title: 'Japan Trip Ideas',
+    content: '<p>Need to plan for next spring!</p><ul><li>Visit Tokyo and Kyoto</li><li>Try authentic ramen and street sushi</li><li>See temples and shrines in Kyoto</li><li>Explore local fish markets</li><li>Book Shinkansen (bullet train) passes early</li></ul>',
+    tags: ['travel', 'personal', 'ideas']
   },
   {
-    title: '💡 Content Ideas: Tech Blog',
-    content: '<ul><li>Why AI Agents are the future</li><li>React 19 vs Next.js</li><li>Clean Code tips for juniors</li></ul>',
-    tags: ['creative', 'work']
+    title: 'Workout Routine',
+    content: '<p><strong>Monday:</strong> Chest and Triceps</p><p><strong>Wednesday:</strong> Back and Biceps</p><p><strong>Friday:</strong> Legs and Core</p><p>Focus on progressive overload this month.</p>',
+    tags: ['health', 'personal']
+  },
+  {
+    title: 'Movie Watchlist',
+    content: '<ol><li>Dune Part Two</li><li>Interstellar</li><li>The Batman</li><li>Oppenheimer</li></ol>',
+    tags: ['entertainment', 'personal', 'lists']
+  },
+  {
+    title: 'Book Recommendations',
+    content: '<ul><li>Atomic Habits by James Clear</li><li>Deep Work by Cal Newport</li><li>The Psychology of Money by Morgan Housel</li></ul>',
+    tags: ['reading', 'ideas']
+  },
+  {
+    title: 'Birthday Gift Ideas for Sarah',
+    content: '<ul><li>Sony Wireless headphones</li><li>Nice ceramic coffee mug</li><li>Mechanical gaming mouse</li></ul>',
+    tags: ['personal', 'shopping', 'ideas']
+  },
+  {
+    title: 'Car Maintenance Checklist',
+    content: '<p>Need to get this done before the road trip:</p><ul><li>Oil change</li><li>Check tire pressure and tread</li><li>Replace wiper fluid</li></ul>',
+    tags: ['todo', 'reminder', 'personal']
   }
 ];
 
@@ -112,7 +132,7 @@ const seedDatabase = async () => {
         VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING id;
       `;
-      const pinned = tags.has('todo') || tags.has('high-priority') ? Math.random() < 0.5 : false; 
+      const pinned = tags.has('todo') ? Math.random() < 0.5 : false; 
       const noteResult = await client.query(noteQuery, [
         USER_ID_TO_SEED, title, content, pinned, createdAt, updatedAt
       ]);
