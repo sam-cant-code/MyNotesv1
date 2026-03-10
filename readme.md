@@ -1,80 +1,104 @@
-# MyNotesv1
+# MyNotes AI
 
-> A smart, AI-integrated note-taking application featuring a built-in AI assistant powered by Google's Gemini.
+> A smart, agentic note-taking application featuring **Note Buddy**—a built-in AI assistant powered by Google's Gemini.
 
 ---
 
-## 🎬 Demo
+## 🎬 Demo Scenarios
 
-**Login Page UI & Animations:**
+Note Buddy isn't just a chatbot; it is an action-oriented agent that manages your database through natural language.
 
-![Login Page UI Animations](assets/login%20page.gif)
+### 1. Smart Lifestyle Management
+Turn messy thoughts into structured, tagged entries instantly.
+**Prompt:** *"Note Buddy, I'm planning a new project called 'Stealth Mode'. Add: design a logo, find a co-founder, and register the domain. Tag it as work and high priority."*
+![Smart Creation](assets/ai-create.gif)
 
-**Watch the Full Video Walkthrough:**
+### 2. Contextual Retrieval & Executive Summary
+Filter your dashboard and extract key insights without opening a single file.
+**Prompt:** *"Show me my high-priority work tasks and summarize the key phases in my 'Vision 2026' note."*
+![Smart Filter and Summary](assets/ai-filter-summary.gif)
 
-[![Project Demo](https://img.youtube.com/vi/YOUR_VIDEO_ID_HERE/maxresdefault.jpg)](https://youtu.be/YOUR_VIDEO_ID_HERE)
-*(Note: Replace `YOUR_VIDEO_ID_HERE` with your actual YouTube video ID, or link directly to a hosted `.mp4` file.)*
+### 3. Agentic Updates & Safety Guardrails
+Modify notes on the fly and perform bulk operations with built-in safety confirmations.
+**Prompt:** *"Add 'Launch Beta' to my Stealth Mode milestones and delete all old archive notes."*
+![Safety and Updates](assets/ai-safety-update.gif)
+
+---
 
 ## 📸 Screenshots
 
-| Dashboard | AI Chat Assistant |
+| Dashboard | Note Buddy Assistant |
 | :---: | :---: |
 | <img src="assets/dashboard-screen.png" alt="Dashboard View" width="500"/> | <img src="assets/ai-chat-screen.png" alt="AI Chat View" width="500"/> |
-| *Managing and organizing notes.* | *Interacting with the Gemini-powered AI.* |
-
-*(Note: Create an `assets` folder in your project, drop your screenshots in there, and update the filenames above if needed.)*
+| *Managing and organizing lifestyle notes.* | *Interacting with the Neural Assistant.* |
 
 ---
 
 ## ✨ Key Features
 
-* **AI Chat Integration:** Ask questions and get assistance directly within your notes using Google's Gemini AI.
-* **Resilient API Handling:** Implemented exponential backoff and retry logic to ensure stable AI responses even during high server demand.
-* **Note Management:** Create, view, and manage your personal notes efficiently.
+* **Neural Assistant (Note Buddy):** An agentic AI that maps natural language directly to SQL database operations.
+* **Intelligent UI Filtering:** Dynamically filters the dashboard view based on AI search intent.
+* **Resilient API Handling:** Implemented exponential backoff and retry logic for stable Gemini AI responses.
+* **Secure Authentication:** Seamless Google OAuth 2.0 integration for personal data security.
+* **Rich Text Editing:** Full-featured note management using the TipTap editor.
 
 ## 🛠️ Tech Stack
 
 * **Backend:** Node.js, Express.js
-* **AI Integration:** Google Generative AI SDK (`gemini-2.5-flash`)
-* **Frontend:** *(Add your frontend tech here, e.g., React, HTML/CSS)*
-* **Database:** *(Add your database here, e.g., MongoDB, PostgreSQL)*
+* **Frontend:** React, Tailwind CSS, Zustand
+* **AI Integration:** Google Generative AI SDK (`gemini-2.0-flash`)
+* **Database:** PostgreSQL
 
 ---
 
 ## 🚀 Getting Started
 
-Follow these instructions to set up the project locally.
-
 ### Prerequisites
 
-Ensure you have the following installed on your machine:
-* [Node.js](https://nodejs.org/) (v16 or higher recommended)
+* [Node.js](https://nodejs.org/) (v18 or higher)
+* PostgreSQL running locally
 * A [Google Gemini API Key](https://aistudio.google.com/app/apikey)
 
 ### Installation
 
-1.  **Clone the repository:**
+1. **Clone the repository:**
     ```bash
     git clone [https://github.com/sam-cant-code/MyNotesv1.git](https://github.com/sam-cant-code/MyNotesv1.git)
     cd MyNotesv1
     ```
 
-2.  **Install backend dependencies:**
+2. **Install dependencies:**
+    ```bash
+    cd backend && npm install
+    cd ../frontend && npm install
+    ```
+
+3. **Database Setup:**
+    Run the provided SQL scripts or use the seeder for a professional-casual demo:
     ```bash
     cd backend
-    npm install
+    node seed.js
     ```
 
-3.  **Set up environment variables:**
-    Create a `.env` file in your `backend` directory and add your Gemini API key:
+4. **Environment Variables:**
+    Create a `.env` file in the `backend` directory:
     ```env
-    GEMINI_API_KEY=your_actual_api_key_here
+    PORT=4000
+    PG_USER=your_user
+    PG_PASSWORD=your_password
+    PG_DATABASE=your_db
+    GEMINI_API_KEY=your_key
+    GOOGLE_CLIENT_ID=your_id
+    GOOGLE_CLIENT_SECRET=your_secret
     ```
 
-4.  **Run the application:**
+5. **Run the application:**
     ```bash
-    # Start the backend server
-    node index.js # or npm start / npm run dev depending on your package.json
+    # Terminal 1: Backend
+    cd backend && npm start
+    
+    # Terminal 2: Frontend
+    cd frontend && npm run dev
     ```
 
 ---
