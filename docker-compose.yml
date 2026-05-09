@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # 1. PostgreSQL Database Service
+  db:
+    image: postgres:15-alpine
+    container_name: mynotes-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: your_password_here # Update this!
+      POSTGRES_DB: mynotes
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # 2. Node.js Backend Service
+  # 2. Node.js Backend Service
+  # 2. Node.js Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mynotes-backend
+    env_file:                  
+      - ./backend/.env         
+    environment:
+      - PORT=4000
+      - PG_HOST=db             # <-- Changed to PG_ and points to 'db'
+      - PG_USER=postgres       # <-- Changed to PG_
+      - PG_PASSWORD=your_password_here # (Make sure to put your real password here)
+      - PG_DATABASE=mynotes    # <-- Changed to PG_
+      - PG_PORT=5432           # <-- Changed to PG_
+    ports:
+      - "4000:4000"
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  # 3. React/Vite Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: mynotes-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
